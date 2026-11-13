@@ -1,0 +1,92 @@
+/* ===== XVI DNA v6: 3D hologram room + Orbitron / Rajdhani / Share Tech Mono ===== */
+body{font-family:Rajdhani,Inter,system-ui,sans-serif}
+.mono,.xw-wl .r span:not(:first-child){font-family:"Share Tech Mono","JetBrains Mono",monospace!important}
+#appName,.xbrand,h1,.scard .sh h3,#xScene #xTabs button,.xt b,#xHolo .hh h3,.ptitle,#nav button,#xHolo .hstats small{font-family:Orbitron,Rajdhani,sans-serif!important;letter-spacing:.06em}
+.scard .sh h3{font-size:14px!important}#xScene #xTabs button{font-size:12px!important}
+.hstats b,.xcount,.stat b,.kv span:nth-child(2n){font-family:"Share Tech Mono","JetBrains Mono",monospace}
+#x3d{position:fixed;inset:0;width:100vw;height:100vh;z-index:0;display:block;outline:none}
+body.x-3d #xBg,body.x-3d #xScene .sbg,body.x-3d #xStage,body.x-3d #xHome .fill,body.x-3d #xHome .xpar{display:none!important}
+body.x-3d #xHome{background:transparent!important;pointer-events:none}
+body.x-3d #xHome>*:not(#xStage){pointer-events:auto}
+body.x-3d #xScene .sfx{background:radial-gradient(ellipse 85% 60% at 50% 40%,rgba(3,11,31,.25),rgba(3,11,31,.05) 70%),linear-gradient(180deg,rgba(3,11,31,.35),transparent 22%,transparent 70%,rgba(3,11,31,.45))}
+body.x-3d.x-home{background:#030b1f}
+body.x-3d.x-home .wrap>header{visibility:hidden}
+/* HUD on the 3D desk */
+#x6hud,#x6brand,#x6hint{display:none;position:fixed;z-index:6;pointer-events:none}
+body.x-home #x6hud,body.x-home #x6brand,body.x-3d.x-home #x6hint{display:block}
+body.x-picking #x6hud,body.x-picking #x6brand,body.x-picking #x6hint{display:none!important}
+#x6hud{left:16px;top:14px;padding:10px 16px 11px;border-radius:14px;border:1px solid rgba(160,220,255,.55);background:linear-gradient(170deg,rgba(40,110,220,.4),rgba(6,20,52,.82));backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:0 0 24px rgba(50,150,255,.35);color:#eaf6ff;min-width:190px}
+#x6hud small{display:block;font:700 10px/1 Orbitron,sans-serif;letter-spacing:.18em;color:#9fdcff}
+#x6hud b{display:block;font:400 26px/1.15 "Share Tech Mono",monospace;margin-top:5px;color:#fff;text-shadow:0 0 12px rgba(76,195,255,.7)}
+#x6hud span{display:block;font:600 13px/1.3 Rajdhani,sans-serif;color:#a9c6ea}#x6hud i{font-style:normal;font-family:"Share Tech Mono",monospace}#x6hud .up{color:#2ee6a8}#x6hud .dn{color:#ff5a76}
+#x6brand{left:50%;top:14px;transform:translateX(-50%);font:900 26px/1 Orbitron,sans-serif;letter-spacing:.12em;color:#fff;text-shadow:0 0 18px rgba(76,195,255,.9);text-align:center}
+#x6brand sup{font-size:11px;vertical-align:14px}#x6brand em{font-style:normal;color:#4cc3ff}#x6brand small{display:block;font:700 10px/1 Orbitron,sans-serif;letter-spacing:.42em;color:#9fdcff;margin-top:7px}
+#x6hint{left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 14px);transform:translateX(-50%);font:600 13px Rajdhani,sans-serif;letter-spacing:.06em;color:#a9c6ea;background:rgba(6,20,52,.55);border:1px solid rgba(140,210,255,.3);border-radius:99px;padding:6px 14px;white-space:nowrap}
+/* control strip: always reachable by keyboard / screen reader; visible as the desk when WebGL is unavailable */
+#x6nav{position:fixed;left:-9999px;top:0;z-index:30}
+#x6nav:focus-within{left:50%;transform:translateX(-50%);top:auto;bottom:60px;display:flex;flex-wrap:wrap;gap:6px;justify-content:center;width:min(760px,96vw);padding:8px;border-radius:14px;background:rgba(6,20,52,.9);border:1px solid rgba(140,210,255,.5)}
+#x6nav button{min-height:40px;padding:0 12px;border-radius:10px;border:1px solid rgba(140,210,255,.5);background:rgba(30,80,170,.35);color:#fff;font:700 11px Orbitron,sans-serif;letter-spacing:.08em}
+body.x-3d.x-home #xConn{display:none!important}
+body.x-3d.x-home #xTeach{bottom:calc(env(safe-area-inset-bottom,0px) + 54px)}
+@media (max-width:720px){#x6brand{font-size:15px;top:14px;left:auto;right:12px;transform:none;text-align:right}#x6brand small{letter-spacing:.3em}#x6brand sup{font-size:8px;vertical-align:9px}#x6hud{min-width:0;padding:8px 12px}#x6hud b{font-size:20px}#x6hint{font-size:12px}}
+@media (prefers-reduced-motion:reduce){#x6hud,#x6brand{transition:none}}
+/* frosted-glass sheets over the 3D room */
+body.x-3d #ask,body.x-3d #ticket,body.x-3d #drawer,body.x-3d #pop{background:linear-gradient(170deg,rgba(18,56,120,.62),rgba(5,18,48,.72))!important;-webkit-backdrop-filter:blur(18px) saturate(1.3);backdrop-filter:blur(18px) saturate(1.3);border:1px solid rgba(160,220,255,.45)!important;box-shadow:0 0 0 1px rgba(76,195,255,.15),0 18px 60px rgba(0,10,40,.6),inset 0 1px 0 rgba(255,255,255,.18)!important}
+body.x-3d #ask .tk-h b,body.x-3d #ticket .tk-h b,body.x-3d #drawer h3{font-family:Orbitron,sans-serif;letter-spacing:.06em}
+body.x-no3d #x6brand,body.x-no3d #x6hud{display:none!important}
+/* v7 H2: market / trade / transactions screens get their own solid glass backdrop instead of the frozen 3D room */
+body.x-3d:not(.x-home):not(.x-scene):not(.x-picking):not(.x-simopen) #x3d{visibility:hidden}
+body.x-3d:not(.x-home):not(.x-scene):not(.x-picking):not(.x-simopen){background:radial-gradient(ellipse 120% 70% at 50% 0%,#0b2a5e 0%,#061634 45%,#030b1f 100%) fixed}
+body.x-3d:not(.x-home):not(.x-scene):not(.x-picking):not(.x-simopen) .wrap>.view{background:rgba(4,16,42,.72);border:1px solid rgba(140,205,255,.18);border-radius:18px;padding:4px 12px;margin-left:-12px;margin-right:-12px;box-shadow:0 10px 40px rgba(0,8,30,.5)}
+body.x-3d.plat:not(.x-holo-view) .wrap>.view,body.x-3d.x-ws .wrap>.view{background:none;border:0;padding:0;box-shadow:none}
+/* v7 M3: tab bar on one row where it fits; the cards start under it (JS sets --x7top) and use the full height */
+@media (min-width:981px){#xScene .stop{width:min(1440px,98vw)}#xScene #xTabs{flex-wrap:nowrap;overflow-x:auto;gap:4px}#xScene #xTabs button{padding:8px 10px!important;font-size:11.5px!important;letter-spacing:.04em}#xScene #xTabs .xchip{margin-left:4px}
+  #xScene .scols{top:var(--x7top,calc(max(10.5vh,74px) + 66px))!important;bottom:max(96px,10vh)!important}}
+@media (max-width:980px){#xScene .scols{top:var(--x7top,calc(max(10.5vh,74px) + 60px))!important}}
+/* v7 (v3 M10): sim order panels get at least half the column; drawing toolbars scroll instead of being cut off */
+#xWS .xw-side>.xw-order{flex:1 1 0;min-height:min(440px,58%)}
+#xWS .xw-side>.xw-ladder{flex:0 1 auto;min-height:120px;max-height:42%;overflow-y:auto;scrollbar-width:thin}
+#drawBar,#xWS #drawBar{overflow-y:auto!important;overflow-x:hidden;scrollbar-width:thin;overscroll-behavior:contain}
+#xWS #drawBar{gap:2px}
+/* v7 (v3 L11): the drawer / ticket / Ask dims also cover the floating Ask button */
+body:has(#drawer.show) #xTeach,body:has(#tkDim.show) #xTeach,body:has(#ask.show) #xTeach{opacity:.25;pointer-events:none;filter:blur(1px)}
+/* v7 (v3 M4): one Ask on the 3D home (the desk ASK button); the floating one stays everywhere else */
+body.x-3d.x-home #xTeach{display:none}
+/* v7 (v3 L6): Connect buttons pulse once */
+.xcbtn{animation-iteration-count:1!important}
+/* v7 (v3 M12): bigger tap targets on touch screens in Spot and the sims */
+@media (pointer:coarse){.wrap .tool,.wrap .tfs button,.wrap .tabs button,.wrap .ctabs button,#chartTabs button,#panelTabs button,#navBar button,#xWS .xw-mb button,#xWS .xw-ptabs button,#drawBar button{min-height:32px;min-width:32px}
+  #xWS .xw-mb{overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none}}
+/* v7 (v3 M12): "Exit to desk" stays on screen in every sim, even when the menu bar scrolls */
+#xWS .xw-mb .xw-exit{position:sticky;right:0;z-index:2;background:inherit;background-color:var(--bg2,#111);box-shadow:-10px 0 12px -4px rgba(0,0,0,.6)}
+@media (max-width:560px){#xWS .xw-mb .xw-theme,#xWS .xw-mb .xw-coachbtn{display:none}}
+@media (max-width:560px){#xWS .xw-mttb{overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none}#xWS{overflow-x:hidden}}
+#xBg{overflow:hidden}html,body{overflow-x:clip}
+.xpc{position:relative}.xpc .xsym{position:absolute;left:8px;top:8px;z-index:2;font:700 10.5px/1 Orbitron,Rajdhani,sans-serif;letter-spacing:.06em;font-style:normal;padding:5px 8px;border-radius:8px;background:rgba(3,11,31,.82);color:#9fdcff;border:1px solid rgba(140,210,255,.5)}
+/* v7 (v3 M10): in the sims the drawing tools sit in two columns, so all of them fit without scrolling */
+#xWS #drawBar{display:grid!important;grid-template-columns:30px 30px;grid-auto-rows:31px;align-content:start;justify-content:center;flex:0 0 70px!important;width:70px;gap:3px 2px!important}
+#xWS #drawBar hr,#xWS #drawBar .hq{grid-column:1/-1}#xWS #drawBar hr{margin:12px 4px}
+/* ===== v7: Edit desk ===== */
+#x7editBtn{position:fixed;z-index:31;left:14px;top:96px;display:none;align-items:center;gap:6px;padding:9px 14px;border-radius:999px;border:1px solid rgba(160,220,255,.55);background:rgba(6,22,56,.78);color:#eaf6ff;font:700 13px Rajdhani,Inter,sans-serif;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:0 0 14px rgba(76,195,255,.25)}
+body.x-3d.x-home:not(.x-holo):not(.x-picking):not(.x-simopen) #x7editBtn{display:inline-flex}
+#x7editBtn:hover,#x7editBtn[aria-pressed=true]{border-color:#ffd36a;color:#fff;box-shadow:0 0 18px rgba(255,211,106,.5)}
+body.x-edit #x7editBtn{display:none!important}
+#x7edit{display:none}
+body.x-edit #x7edit{display:flex;flex-direction:column;gap:8px;position:fixed;z-index:40;right:12px;top:72px;width:min(340px,calc(100vw - 24px));max-height:calc(100vh - 96px);overflow:auto;padding:12px 14px;border-radius:16px;background:rgba(5,18,46,.86);border:1px dashed rgba(255,211,106,.75);box-shadow:0 0 30px rgba(76,195,255,.3),inset 0 0 20px rgba(76,195,255,.12);color:#eaf6ff;font:500 13px Rajdhani,Inter,sans-serif;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+#x7edit .hd{display:flex;align-items:center;gap:8px}#x7edit .hd b{font:800 13px Orbitron,Rajdhani,sans-serif;letter-spacing:.14em;color:#ffd36a;text-shadow:0 0 10px rgba(255,211,106,.6)}#x7edit .hd small{flex:1;color:#8fb3d9;font-size:11px}
+#x7edit button{font:inherit;font-weight:700;color:#eaf6ff;background:rgba(14,44,100,.7);border:1px solid rgba(160,220,255,.45);border-radius:9px;padding:6px 10px;cursor:pointer;min-height:32px}
+#x7edit button:hover{border-color:#fff}#x7edit button.pri{background:#4cc3ff;color:#03122e;border-color:#4cc3ff}#x7edit button.dn{color:#ffc0cb;border-color:rgba(255,90,118,.6)}
+#x7edit .seg{display:flex;gap:6px}#x7edit .seg button{flex:1}#x7edit .seg button[aria-selected=true]{background:rgba(76,195,255,.45);border-color:#fff}
+#x7edit .hint{margin:0;color:#9fdcff;font-size:12px;line-height:1.35}#x7edit h4{margin:4px 0 0;font:700 12px Orbitron,Rajdhani,sans-serif;letter-spacing:.1em;color:#9fdcff}#x7edit h4 small{font:500 11px Rajdhani,Inter,sans-serif;letter-spacing:0;color:#8fb3d9;margin-left:6px}
+#x7edit .cat{display:flex;flex-wrap:wrap;gap:6px}#x7edit .cat button{font-size:12px;padding:5px 9px;touch-action:none}#x7edit .cat button.on{border-color:#2ee6a8;color:#9ff5d6}
+#x7edit .sel{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:8px;border-radius:10px;background:rgba(255,211,106,.08);border:1px solid rgba(255,211,106,.4)}#x7edit .sel b{flex:1 0 100%;color:#ffd36a}
+#x7edit .sw{display:flex;flex-wrap:wrap;gap:5px;flex:1 0 100%}#x7edit .sw button{width:32px;height:32px;min-height:32px;padding:0;border-radius:50%;font-size:14px}#x7edit .sw button.on{outline:3px solid #fff;outline-offset:1px}
+#x7edit .sz{display:flex;align-items:center;gap:8px}#x7edit .sz output{min-width:46px;text-align:center;font-family:"Share Tech Mono",monospace}
+#x7edit .ft{display:flex;justify-content:flex-end;border-top:1px solid rgba(160,220,255,.2);padding-top:8px}
+#x7ghost{position:fixed;left:0;top:0;z-index:60;pointer-events:none;margin:-18px 0 0 -50px;padding:8px 14px;border-radius:10px;background:rgba(255,90,118,.7);border:2px solid #fff;color:#fff;font:700 13px Orbitron,Rajdhani,sans-serif;box-shadow:0 0 20px rgba(255,255,255,.5)}#x7ghost.ok{background:rgba(76,195,255,.85)}
+body.x-edit #x6hint,body.x-edit #xTeach{display:none!important}
+@media (max-width:640px){body.x-edit #x7edit{left:8px;right:8px;width:auto;top:8px;max-height:40vh;font-size:12px}#x7editBtn{top:auto;bottom:calc(var(--x7dock,64px) + 10px);left:10px;padding:8px 11px}}
+@media (prefers-reduced-motion:reduce){#x7edit,#x7editBtn{transition:none!important;animation:none!important}}
+/* v7: a closing sheet never catches taps while it slides away */
+#ask:not(.show),#drawer:not(.show){pointer-events:none}
+body.x-3d.x-home:not(.x-scene) #pop{display:none!important}

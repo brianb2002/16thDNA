@@ -1,0 +1,30 @@
+/* ===== v5 embedded mode (inside the holo desk window) ===== */
+html:has(body.x-embed),body.x-embed{background:#04102a!important}
+body.x-embed{padding-bottom:0!important}
+body.x-embed #xHome,body.x-embed #xBg{display:none!important}
+body.x-embed #xScene .sbg{display:none}
+body.x-embed #xScene .splate{position:absolute;inset:-3%;background-size:cover;background-position:center 34%;filter:blur(3px) saturate(115%) brightness(.62);transform:scale(1.04);animation:x5drift 38s ease-in-out infinite alternate}
+body.x-embed #xScene .splate.in{animation:x5plin .9s cubic-bezier(.2,.8,.2,1),x5drift 38s ease-in-out .9s infinite alternate}
+@keyframes x5plin{from{opacity:0;filter:blur(14px) brightness(.4);transform:scale(1.12)}}
+@keyframes x5drift{from{transform:scale(1.04) translate3d(-1%,0,0)}to{transform:scale(1.09) translate3d(1%,-1%,0)}}
+body.x-embed #xScene .sfx{background:radial-gradient(ellipse 85% 70% at 50% 45%,rgba(4,16,42,.35),rgba(4,16,42,.7)),repeating-linear-gradient(180deg,rgba(160,215,255,.035) 0 1px,transparent 1px 3px)}
+body.x-embed #xScene .stop{top:54px;width:min(1180px,97vw)}
+body.x-embed #xScene .scols{top:118px;bottom:64px;width:min(1440px,98vw)}
+body.x-embed.x-scene .wrap>header{top:6px}
+body.x-embed #xScene #xTabs button{font-size:14px;padding:7px 12px}
+body.x-embed #xConn{left:12px;bottom:12px;flex-direction:row}
+body.x-embed.x-scene #xConn{display:flex}
+body.x-embed .xcbtn{min-width:0;padding:6px 12px 6px 6px}body.x-embed .xcbtn .ic{width:30px;height:30px}body.x-embed .xcbtn b{font-size:14px}
+body.x-embed #xTeach{bottom:12px}
+body.x-embed.x-holo #xConn,body.x-embed.x-ws #xConn,body.x-embed.x-picking #xConn{display:none!important}
+body.x-embed.x-scene #nav{display:none!important}
+@media (max-width:980px){body.x-embed #xScene .scols{top:108px;bottom:70px}}
+@media (prefers-reduced-motion:reduce){body.x-embed #xScene .splate{animation:none!important}}
+body.x-embed.x-scene #xTeach{display:none!important}
+
+#xPick .pfill{position:absolute;inset:-30px;background:center/cover no-repeat;filter:blur(18px) brightness(.55);display:none}body.x-embed #xPick .pfill{display:block}
+@media (max-width:720px){body.x-embed #xConn{display:none!important}}
+#xScene.x5done .scard{animation:none!important;opacity:1!important}
+.xvbox .xv-row{display:flex;align-items:center;gap:8px;margin:8px 0;flex-wrap:wrap;font-size:13px}.xvbox .xv-row>label{min-width:44px}
+.xvbox .xv-sel{flex:1;min-width:0;max-width:100%;min-height:38px;border-radius:9px;border:1px solid var(--glassB);background:rgba(8,24,60,.6);color:var(--txt);padding:0 8px;font-size:12.5px}
+.xvbox .xv-prem{line-height:1.35}.xvbox .xv-prem.off{opacity:.6}.xvbox .xv-note{color:var(--mut,#9fb4d6);font-size:11.5px;flex:1;min-width:120px}.xvbox .xv-test{min-height:38px}

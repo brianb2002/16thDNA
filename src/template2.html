@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>XVI DNA · Holo Desk</title><link rel="manifest" href="manifest.json"><meta name="theme-color" content="#030b1f"><link rel="apple-touch-icon" href="apple-touch-icon.png"><link rel="icon" href="/*ICON*/">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&family=Cinzel:wght@700;800&family=Rajdhani:wght@500;600;700&family=Orbitron:wght@500;700;900&family=Share+Tech+Mono&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#000;--bg2:#06080b;--line:rgba(255,255,255,.09);--txt:#f2f5fa;--mut:#8f9aae;--up:#16f0a4;--dn:#ff4d60;--amb:#ffb547;--acc:#7c9cff;--glass:rgba(22,28,40,.58);--glassB:rgba(255,255,255,.14)}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--txt);font-family:Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+body{background:radial-gradient(1200px 600px at 80% -10%,rgba(124,156,255,.12),transparent 60%),radial-gradient(900px 500px at -10% 30%,rgba(34,211,154,.08),transparent 60%),var(--bg);min-height:100vh}
+body.touring{padding-bottom:62vh}
+.wrap{max-width:760px;margin:0 auto;padding:16px 14px 40px}
+.mono{font-family:"JetBrains Mono",monospace}
+header{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+h1{font-size:19px;font-weight:800;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:46vw}h1 span{color:var(--up)}
+.badge{font-size:11px;padding:5px 9px;border-radius:99px;border:1px solid var(--line);color:var(--mut);white-space:nowrap}
+.badge.live{color:var(--up);border-color:rgba(34,211,154,.4)}
+.badge.live::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--up);margin-right:6px;box-shadow:0 0 8px var(--up);animation:p 1.6s infinite}
+@keyframes p{50%{opacity:.3}}
+.mktbtn{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;margin-bottom:8px;border-radius:14px;border:1px solid var(--glassB);background:rgba(124,156,255,.08);color:var(--txt);font:700 16px Inter;cursor:pointer;text-align:left}
+.mktbtn small{display:block;font:500 12px Inter;color:var(--mut);margin-top:2px}
+.bar2{display:flex;gap:8px;margin-bottom:12px}
+.seg{display:flex;background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:3px;flex:1}
+.seg button{flex:1;padding:8px 4px;border:0;border-radius:8px;background:none;color:var(--mut);font:600 12px Inter;cursor:pointer}
+.seg button.on{background:rgba(124,156,255,.16);color:var(--txt)}
+.panel{position:relative;background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.01));border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px;scroll-margin-top:12px}
+.ph{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.ph h2{font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--mut)}.ph h2 b{color:var(--acc);margin-right:6px}
+.q{width:26px;height:26px;border-radius:50%;border:1px solid var(--glassB);background:rgba(124,156,255,.12);color:var(--acc);font:700 13px Inter;cursor:pointer}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:10px;min-width:0}
+.stat .k{font-size:10.5px;color:var(--mut);text-transform:uppercase;letter-spacing:.05em}
+.stat .v{font:700 14px "JetBrains Mono";margin-top:4px;overflow-wrap:anywhere}
+.up{color:var(--up)}.dn{color:var(--dn)}.amb{color:var(--amb)}.mut{color:var(--mut)}
+canvas{width:100%;height:230px;display:block;border-radius:10px;background:var(--bg2)}
+.legend{display:flex;flex-wrap:wrap;gap:10px;font-size:11px;color:var(--mut);margin-top:8px}
+.legend i{display:inline-block;width:14px;height:3px;border-radius:2px;margin-right:5px;vertical-align:middle}
+.row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.row label{flex:0 0 92px;font-size:12px;color:var(--mut)}
+.row input{flex:1;min-width:0;background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:10px;color:var(--txt);font:600 15px "JetBrains Mono"}
+.row input:focus{outline:none;border-color:var(--acc)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:11px 14px;border-radius:12px;border:1px solid var(--line);background:var(--bg2);color:var(--txt);font:600 13px Inter;cursor:pointer}
+.btn.pri{background:var(--acc);border-color:var(--acc);color:#0a0f1c}.btn.go{background:var(--up);border-color:var(--up);color:#04140e}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.bar{height:10px;border-radius:6px;background:var(--bg2);overflow:hidden;display:flex;margin:8px 0 4px}.bar div{height:100%}
+.checks{list-style:none;display:flex;flex-direction:column;gap:7px}
+.checks li{display:flex;gap:10px;align-items:flex-start;padding:10px;border-radius:12px;background:var(--bg2);border:1px solid var(--line);font-size:13px;line-height:1.4}
+.ic{flex:0 0 22px;height:22px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:12px}
+.ic.pass{background:rgba(34,211,154,.15);color:var(--up)}.ic.warn{background:rgba(255,181,71,.15);color:var(--amb)}.ic.fail{background:rgba(255,93,108,.15);color:var(--dn)}
+.verdict{text-align:center;padding:16px;border-radius:14px;margin-bottom:10px;border:1px solid}
+.verdict .t{font:800 24px Inter;letter-spacing:-.02em}.verdict .s{font-size:13px;color:var(--mut);margin-top:4px}
+.v-go{border-color:rgba(34,211,154,.5);background:rgba(34,211,154,.08)}.v-go .t{color:var(--up)}
+.v-wait{border-color:rgba(255,181,71,.5);background:rgba(255,181,71,.07)}.v-wait .t{color:var(--amb)}
+.v-no{border-color:rgba(255,93,108,.5);background:rgba(255,93,108,.07)}.v-no .t{color:var(--dn)}
+.kv{display:grid;grid-template-columns:1fr auto;gap:6px 12px;font-size:12.5px;margin-top:10px}
+.kv span:nth-child(odd){color:var(--mut)}.kv span:nth-child(even){font-family:"JetBrains Mono";text-align:right}
+.note{font-size:12px;color:var(--mut);line-height:1.5;margin-top:8px}
+.alert{font-size:12.5px;padding:10px;border-radius:10px;margin-bottom:10px;line-height:1.45;border:1px solid rgba(255,181,71,.35);background:rgba(255,181,71,.07);color:#ffd9a0}
+.start{display:flex;gap:8px;margin-bottom:12px}.start .btn{flex:1}
+/* brain cards */
+.sc{border:1px solid var(--line);background:var(--bg2);border-radius:14px;padding:11px;margin-bottom:8px;cursor:pointer}
+.sc.sel{border-color:var(--acc);box-shadow:0 0 0 1px var(--acc) inset}
+.sc .top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.sc .nm{font-weight:700;font-size:14px}.sc .fam{font-size:11px;color:var(--mut)}
+.pillS{font:700 10.5px Inter;padding:4px 8px;border-radius:99px;white-space:nowrap;letter-spacing:.03em}
+.ps-signal{background:rgba(34,211,154,.16);color:var(--up)}.ps-refused{background:rgba(255,93,108,.16);color:var(--dn)}
+.ps-wait{background:rgba(124,156,255,.16);color:var(--acc)}.ps-none{background:rgba(255,255,255,.07);color:var(--mut)}
+.conds{margin-top:8px;font-size:12px;line-height:1.55}.conds div{display:flex;gap:6px}
+.gts{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px}
+.gt{font:600 10.5px "JetBrains Mono";padding:3px 7px;border-radius:7px;border:1px solid var(--line)}
+.gt.p{color:var(--up);border-color:rgba(34,211,154,.35)}.gt.f{color:var(--dn);border-color:rgba(255,93,108,.35)}.gt.n{color:var(--mut)}
+.sc .bt{font:500 11px "JetBrains Mono";color:var(--mut);margin-top:7px}
+/* tour */
+#dim{position:fixed;inset:0;background:rgba(3,5,9,.62);z-index:50;opacity:0;pointer-events:none;transition:opacity .25s}
+body.touring #dim{opacity:1;pointer-events:auto}
+.panel.spot{z-index:60;box-shadow:0 0 0 2px var(--acc),0 0 40px rgba(124,156,255,.35);background:#0a0e15}
+#pop{position:fixed;left:50%;bottom:12px;transform:translate(-50%,20px);width:min(740px,calc(100% - 20px));max-height:58vh;overflow:auto;z-index:70;background:var(--glass);backdrop-filter:blur(20px) saturate(150%);-webkit-backdrop-filter:blur(20px) saturate(150%);border:1px solid var(--glassB);border-radius:20px;padding:16px 16px 14px;box-shadow:0 20px 60px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.08);opacity:0;pointer-events:none;transition:opacity .25s,transform .25s}
+#pop.show{opacity:1;pointer-events:auto;transform:translate(-50%,0)}
+.pp-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.dots{display:flex;gap:5px}.dots i{width:18px;height:4px;border-radius:3px;background:rgba(255,255,255,.15)}.dots i.on{background:var(--acc)}
+.x{background:none;border:0;color:var(--mut);font-size:20px;cursor:pointer;line-height:1}
+#pop h3{font-size:17px;font-weight:800;margin-bottom:8px}
+.sec{margin-top:10px}.sec .lbl{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px}
+.sec p{font-size:13.5px;line-height:1.5;color:#d4dbe7}.sec.what .lbl{color:var(--acc)}.sec.why .lbl{color:var(--amb)}
+details.math{margin-top:10px;border:1px solid var(--glassB);border-radius:12px;background:rgba(0,0,0,.22)}
+details.math summary{cursor:pointer;padding:10px 12px;font-size:12px;font-weight:700;color:var(--up);list-style:none}
+details.math summary::before{content:"▸ "}details.math[open] summary::before{content:"▾ "}
+details.math pre{padding:0 12px 12px;font:500 11.5px/1.6 "JetBrains Mono";color:#c7d1e0;white-space:pre-wrap}
+.pp-nav{display:flex;gap:8px;margin-top:14px}.pp-nav .btn{flex:1}
+/* picker */
+#picker{position:fixed;inset:auto 0 0 0;height:86vh;z-index:90;background:rgba(14,18,27,.8);backdrop-filter:blur(22px) saturate(150%);-webkit-backdrop-filter:blur(22px) saturate(150%);border-top:1px solid var(--glassB);border-radius:22px 22px 0 0;transform:translateY(105%);transition:transform .28s;display:flex;flex-direction:column;max-width:760px;margin:0 auto}
+#picker.show{transform:none}
+#pickDim{position:fixed;inset:0;z-index:85;background:rgba(3,5,9,.55);display:none}#pickDim.show{display:block}
+.pk-h{padding:14px 14px 6px}.pk-h .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}.pk-h h3{font-size:16px;font-weight:800}
+#pkSearch{width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:11px 12px;color:var(--txt);font:500 15px Inter}
+#pkSearch:focus{outline:none;border-color:var(--acc)}
+.chips{display:flex;gap:6px;overflow-x:auto;padding:8px 0 2px}
+.chip{flex:0 0 auto;padding:6px 11px;border-radius:99px;border:1px solid var(--line);background:var(--bg2);color:var(--txt);font:600 12px Inter;cursor:pointer}
+.chip.on{border-color:var(--acc);color:var(--acc)}
+#pkList{flex:1;overflow:auto;padding:0 8px 20px}
+.mk{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;padding:11px 8px;border-bottom:1px solid var(--line);cursor:pointer}
+.mk b{font-size:14px}.mk small{display:block;font-size:11px;color:var(--mut);margin-top:2px}
+.mk .pr{font:600 13px "JetBrains Mono";text-align:right}.mk .ch{font:700 12px "JetBrains Mono";min-width:60px;text-align:right}
+
+body{padding-bottom:132px}
+.view{min-height:60vh}
+.vt{font-size:20px;font-weight:800;margin:4px 0 12px}
+.mrow{display:flex;gap:10px;align-items:center;margin-bottom:8px;flex-wrap:wrap}
+.mchip{padding:8px 12px;border-radius:10px;border:1px solid var(--glassB);background:rgba(124,156,255,.08);color:var(--txt);font:700 14px Inter;cursor:pointer;white-space:nowrap}
+.mchip span{font:700 10px "JetBrains Mono";color:var(--acc);margin-left:6px}
+.mstats{display:flex;gap:14px;flex-wrap:wrap;flex:1}
+.mstats div{font-size:10.5px;color:var(--mut)}.mstats b{display:block;font:700 12.5px "JetBrains Mono";color:var(--txt);margin-top:2px}
+.coachbar{display:flex;gap:8px;align-items:center;padding:8px 10px;border-radius:12px;border:1px solid var(--line);background:var(--bg2);margin-bottom:8px;font-size:12.5px;line-height:1.35}
+.coachbar #cbTxt{flex:1}.coachbar .btn{padding:6px 10px;font-size:12px}
+.tabs{display:flex;gap:4px;align-items:center;margin-bottom:8px;overflow-x:auto}
+.tabs.wrapt{flex-wrap:wrap;overflow:visible;margin-top:12px}
+.tabs button{flex:0 0 auto;padding:6px 10px;border-radius:8px;border:0;background:none;color:var(--mut);font:600 12px Inter;cursor:pointer}
+.tabs button.on{background:rgba(255,255,255,.1);color:var(--txt)}
+.hq{flex:0 0 auto;display:inline-grid;place-items:center;width:18px;height:18px;border-radius:50%;border:1px solid var(--glassB);color:var(--acc);font:700 10.5px Inter;cursor:pointer;margin-left:4px;vertical-align:middle}
+.tfrow{display:flex;gap:6px;align-items:center;margin-bottom:4px;flex-wrap:wrap}
+.tfs{display:flex;gap:2px}.tfs button,.tool{padding:5px 8px;border-radius:7px;border:0;background:none;color:var(--mut);font:600 12px Inter;cursor:pointer}
+.tfs button.on{background:rgba(255,255,255,.12);color:var(--txt)}.tool{border:1px solid var(--line);color:var(--txt)}
+.ohlc{font-size:10.5px;color:var(--mut);min-height:15px;margin-bottom:4px}
+#chartBox{position:relative}#chart{height:300px;touch-action:pan-y}
+.sub{height:300px;overflow:auto;background:var(--bg2);border-radius:10px;padding:8px;font:500 12px "JetBrains Mono"}
+.menu{border:1px solid var(--glassB);background:rgba(14,18,27,.9);border-radius:12px;padding:8px;margin-bottom:8px}
+.menu label{display:flex;align-items:center;gap:8px;padding:7px 4px;font-size:12.5px;cursor:pointer;border-bottom:1px solid var(--line)}
+.menu label:last-child{border-bottom:0}.menu label small{color:var(--mut);margin-left:auto;font-size:11px;text-align:right}
+.menu h4{font-size:10.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--mut);margin:6px 4px 2px}
+.pbox{background:var(--bg2);border:1px solid var(--line);border-radius:12px;min-height:110px;padding:4px 10px;font-size:12.5px}
+.prow{display:grid;grid-template-columns:1fr auto;gap:8px;padding:9px 0;border-bottom:1px solid var(--line)}.prow:last-child{border-bottom:0}
+.prow small{display:block;color:var(--mut);font-size:11px;margin-top:2px}.prow .r{text-align:right;font-family:"JetBrains Mono"}
+.empty{padding:28px 8px;text-align:center;color:var(--mut)}
+.tag{font:700 9.5px Inter;padding:2px 6px;border-radius:6px;background:rgba(124,156,255,.16);color:var(--acc);margin-left:6px}
+.bk{display:grid;grid-template-columns:1fr 1fr 1fr;gap:2px 8px}.bk div{padding:2px 0}.bk .hd{color:var(--mut);font-size:10.5px}
+.tiles{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:10px}
+.tile{padding:12px 4px;border-radius:12px;border:1px solid var(--line);background:var(--bg2);color:var(--txt);font:700 11.5px Inter;cursor:pointer;text-align:center}
+.tile i{display:block;font-style:normal;font-size:17px;margin-bottom:4px}.tile.on{border-color:var(--acc);background:rgba(124,156,255,.12)}
+#pkSearch{margin-bottom:4px}#pkList{padding:0}
+.lev{font:700 9.5px "JetBrains Mono";padding:2px 5px;border-radius:5px;background:rgba(124,156,255,.16);color:var(--acc);margin-left:6px}
+#dock{position:fixed;left:0;right:0;bottom:0;z-index:40;background:rgba(8,11,17,.92);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--line)}
+#dock>*{max-width:760px;margin:0 auto}
+.bs{display:flex;gap:8px;padding:8px 14px 4px}
+.bs button,.bsTabs button{flex:1;padding:11px;border-radius:99px;border:0;font:700 14px Inter;cursor:pointer}
+.buy{background:var(--up);color:#04140e}.sell{background:#ff7d89;color:#2a0509}
+#nav{display:flex;padding:4px 6px 8px}
+#nav button{flex:1;background:none;border:0;color:var(--mut);font:600 10px Inter;cursor:pointer;padding:4px 0}
+#nav button i{display:block;font-style:normal;font-size:14px;margin-bottom:2px}#nav button.on{color:var(--txt)}
+#tkDim{position:fixed;inset:0;z-index:45;background:rgba(3,5,9,.55);display:none}#tkDim.show{display:block}
+#ticket{position:fixed;inset:auto 0 0 0;max-height:92vh;z-index:48;background:rgba(14,18,27,.94);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);border-top:1px solid var(--glassB);border-radius:22px 22px 0 0;transform:translateY(105%);transition:transform .28s;display:flex;flex-direction:column;max-width:760px;margin:0 auto}
+#ticket.show{transform:none}
+.tk-h{display:flex;justify-content:space-between;align-items:center;padding:14px 16px 6px;font-size:16px}
+.tk-b{overflow:auto;padding:4px 16px 20px}
+.bsTabs{display:flex;gap:6px;margin-bottom:10px}.bsTabs button{opacity:.35;padding:9px}.bsTabs button.on{opacity:1}
+.coachbox{border:1px solid rgba(124,156,255,.35);background:rgba(124,156,255,.07);border-radius:12px;padding:10px;font-size:12.5px;line-height:1.45;margin-bottom:10px}
+.fld{margin-bottom:10px}.fld label{display:block;font-size:12px;color:var(--mut);margin-bottom:4px}
+.inw{display:flex;align-items:center;background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding-right:8px}
+.inw:focus-within{border-color:var(--acc)}
+.inw input{flex:1;min-width:0;background:none;border:0;padding:11px;color:var(--txt);font:600 15px "JetBrains Mono"}.inw input:focus{outline:none}
+.unit,.unit2{font:700 11px Inter;color:var(--mut);background:none;border:0}.unit{color:var(--acc);cursor:pointer;padding:6px}
+.quick{display:flex;gap:6px;margin-top:5px}.quick button{padding:4px 9px;border-radius:7px;border:1px solid var(--line);background:none;color:var(--txt);font:600 11px Inter;cursor:pointer}
+#pop{z-index:95}#dim{z-index:60}.panel.spot{z-index:61}
+body.touring #dock{display:none}
+.adv{border:1px solid var(--glassB);border-radius:12px;padding:10px;margin:4px 0 10px;background:rgba(0,0,0,.2)}.adv h4{font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--acc);display:flex;justify-content:space-between;align-items:center}.adv h5{font-size:11px;text-transform:uppercase;letter-spacing:.06em;margin:9px 0 3px}.adv li{font-size:12.5px;line-height:1.45;margin:0 0 4px 16px}.adv .odds{display:flex;height:9px;border-radius:5px;overflow:hidden;margin:6px 0 3px}.adv .tip{font-size:12.5px;line-height:1.45;padding:7px 0;border-top:1px solid var(--line)}.adv .tip button{margin-top:5px;padding:5px 10px;font-size:11.5px}
+.found{padding:8px 4px;border-bottom:1px solid var(--line);font-size:12.5px;cursor:pointer;display:flex;gap:8px;align-items:flex-start}.found:last-child{border-bottom:0}.found i{flex:0 0 10px;height:10px;border-radius:3px;margin-top:4px}.found small{display:block;color:var(--mut);font-size:11px;margin-top:1px}.found.sel{background:rgba(124,156,255,.1)}
+.lesson{border:1px solid var(--line);background:var(--bg2);border-radius:12px;margin-top:8px}.lesson>summary{list-style:none;cursor:pointer;padding:10px;display:grid;grid-template-columns:1fr auto;gap:8px;font-size:13px}.lesson>summary small{display:block;color:var(--mut);font-size:11px;margin-top:2px}.lesson .in{padding:0 10px 10px}.lesson details.stp{border-top:1px solid var(--line);padding:8px 0}.lesson details.stp>summary{cursor:pointer;font:700 12px Inter;color:var(--acc);list-style:none}.lesson details.stp>summary::before{content:"▸ "}.lesson details.stp[open]>summary::before{content:"▾ "}.lesson p,.lesson li{font-size:12.5px;line-height:1.5;margin-top:6px}.lesson li{margin-left:16px}.lesson canvas{height:150px;margin-top:8px}
+.cp{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px}.cp:last-child{border-bottom:0}.cp .n{flex:0 0 24px;height:24px;border-radius:50%;display:grid;place-items:center;font:700 11px Inter;border:1px solid var(--line);color:var(--mut)}.cp.done .n{background:rgba(34,211,154,.18);color:var(--up);border-color:rgba(34,211,154,.4)}.cp.cur .n{border-color:var(--acc);color:var(--acc)}.cp small{display:block;color:var(--mut);font-size:11.5px;margin-top:2px}.badge2{border:1px solid var(--line);background:var(--bg2);border-radius:12px;padding:10px;font-size:12.5px;opacity:.45}.badge2.got{opacity:1;border-color:rgba(255,181,71,.45)}.badge2 b{display:block;margin-bottom:2px}.badge2 small{color:var(--mut);font-size:11px;line-height:1.35;display:block}#toast{position:fixed;left:50%;top:14px;transform:translate(-50%,-80px);z-index:99;background:rgba(22,28,40,.92);border:1px solid rgba(255,181,71,.5);border-radius:14px;padding:10px 16px;font-size:13px;transition:transform .3s;max-width:90%}#toast.show{transform:translate(-50%,0)}
+#askDim{position:fixed;inset:0;z-index:96;background:rgba(3,5,9,.55);display:none}#askDim.show{display:block}#ask{position:fixed;inset:auto 0 0 0;height:78vh;z-index:97;background:rgba(14,18,27,.96);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);border-top:1px solid var(--glassB);border-radius:22px 22px 0 0;transform:translateY(105%);transition:transform .28s;display:flex;flex-direction:column;max-width:760px;margin:0 auto}#ask.show{transform:none}#askLog{flex:1;overflow:auto;padding:6px 16px}.msg{max-width:88%;padding:9px 12px;border-radius:14px;font-size:13.5px;line-height:1.5;margin:6px 0;white-space:pre-wrap}.msg.u{margin-left:auto;background:rgba(124,156,255,.18)}.msg.a{background:var(--bg2);border:1px solid var(--line)}.askrow{display:flex;gap:6px;padding:10px 14px 16px}.askrow input{flex:1;min-width:0;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:11px;color:var(--txt);font:500 14px Inter}.askrow input:focus{outline:none;border-color:var(--acc)}.sugg{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}.sugg button{padding:6px 10px;border-radius:99px;border:1px solid var(--line);background:none;color:var(--txt);font:500 12px Inter;cursor:pointer}
+#chartBox{display:flex;gap:4px}#chartWrap{position:relative;flex:1;min-width:0}#drawBar{flex:0 0 38px;display:flex;flex-direction:column;gap:3px;max-height:178px;overflow-y:auto;overflow-x:hidden;align-self:flex-start;padding:3px 2px;border:1px solid var(--line);border-radius:10px;background:var(--bg2);scrollbar-width:thin;scrollbar-color:#3a465c transparent;scroll-snap-type:y proximity}#drawBar::-webkit-scrollbar{width:4px}#drawBar::-webkit-scrollbar-thumb{background:#3a465c;border-radius:4px}#drawBar button{flex:0 0 31px;scroll-snap-align:start}#drawBar button{width:30px;height:31px;border-radius:7px;border:0;background:none;color:var(--mut);font-size:13px;cursor:pointer;padding:0}#drawBar button.on{background:rgba(124,156,255,.22);color:var(--txt)}#drawBar hr{border:0;border-top:1px solid var(--line);margin:2px 4px}#drawText{position:absolute;z-index:5;background:#0b0f16;border:1px solid var(--acc);border-radius:8px;padding:6px 8px;color:var(--txt);font:500 12px Inter;width:190px}#depth{height:300px;flex:1;min-width:0}.sub{flex:1;min-width:0}.navbar{display:flex;gap:3px;align-items:center;margin:6px 0 2px}.navbar button{min-width:30px;padding:5px 7px;border-radius:7px;border:1px solid var(--line);background:none;color:var(--txt);font:600 11.5px Inter;cursor:pointer}.navbar button.on{background:rgba(124,156,255,.22);border-color:var(--acc)}
+body{background:var(--bg)}canvas{background:var(--bg)}#chart,#depth{border:1px solid var(--line)}.panel{background:var(--bg2)}
+#drawer{position:fixed;top:0;left:0;bottom:0;width:min(330px,86vw);background:var(--bg2);border-right:1px solid var(--glassB);z-index:90;transform:translateX(-105%);transition:transform .22s ease;overflow-y:auto;padding:14px 14px 40px}
+#drawer.show{transform:none}#drawerDim{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:89;display:none}#drawerDim.show{display:block}
+#drawer h3{font-size:10.5px;color:var(--mut);text-transform:uppercase;letter-spacing:.06em;margin:16px 0 6px}#drawer .di{display:flex;justify-content:space-between;align-items:center;width:100%;background:none;border:0;border-bottom:1px solid var(--line);color:var(--txt);padding:10px 2px;font-size:13.5px;text-align:left;cursor:pointer}#drawer .di small{color:var(--mut);font-size:11.5px}#drawer select,#drawer input[type=text]{background:var(--bg);color:var(--txt);border:1px solid var(--glassB);border-radius:8px;padding:6px 8px;font-size:13px}
+</style>
+<style>/*SKINCSS*/</style>
+</head>
+<body>
+<div id="dim"></div>
+<div class="wrap">
+  <div id="drawerDim"></div><aside id="drawer" aria-label="Menu"></aside>
+<header><div style="display:flex;align-items:center;gap:8px"><button id="menuBtn" aria-label="Menu" style="background:none;border:1px solid var(--glassB);border-radius:9px;color:var(--txt);font-size:17px;width:34px;height:32px;line-height:1;cursor:pointer">☰</button><h1 id="appName"><span class="xv">XVI</span><sup>TH</sup><span>DNA</span></h1></div><div style="display:flex;gap:6px;align-items:center"><button class="btn" id="askBtn" style="padding:5px 9px;font-size:11px;display:none">💬 Ask teacher</button><button class="btn" id="voiceBtn" style="padding:5px 9px;font-size:11px;display:none" aria-pressed="false">🔈 Voice off</button><button class="btn" id="refresh" style="padding:5px 9px;font-size:11px">↻ <span id="ago">—</span></button><div id="mode" class="badge">Connecting…</div></div></header>
+  <div id="connMsg"></div>
+
+  <!-- ===== MARKET (Spot / Derivatives) ===== -->
+  <div class="view" id="v-market">
+    <div class="mrow">
+      <button class="mchip" id="mktBtn"><b id="mktName">BTC-USD</b><span id="mktLev"></span> ▾</button>
+      <div class="mstats" id="mstats"></div>
+    </div>
+    <div class="coachbar" id="coachBar"><span class="pillS ps-none" id="cbPill">…</span><span id="cbTxt">Loading the brain…</span><button class="btn" id="cbWhy">Why?</button></div>
+    <div class="tabs" id="chartTabs"><button class="on" data-c="price">Price chart</button><button data-c="depth">Depth chart</button><button data-c="book">Order book</button><button data-c="trades">Recent trades</button><span class="hq" data-h="charttabs">?</span></div>
+    <div class="tfrow"><div class="tfs" id="tfSeg"><button data-tf="60">1m</button><button data-tf="300">5m</button><button data-tf="900" class="on">15m</button><button data-tf="1800">30m</button><button data-tf="3600">1h</button><button data-tf="86400">D</button></div><span class="hq" data-h="timeframe">?</span><button class="tool" id="indBtn">ƒ Indicators</button><button class="tool" id="patBtn">◇ Patterns</button><button class="tool" id="spotBtn">◎ Spot it</button><span class="hq" data-h="spot">?</span><button class="tool" id="expBtn">▶ Explain chart</button><span class="hq" data-h="explain">?</span><button class="tool" id="setBtn" aria-label="Chart settings">⚙</button></div><div class="ohlc mono" id="ohlc"></div><div class="menu" id="indMenu" style="display:none"></div><div class="menu" id="setMenu" style="display:none"></div><div class="menu" id="patMenu" style="display:none"></div>
+    <div id="chartBox"><div id="drawBar"></div><div id="chartWrap"><canvas id="chart"></canvas><input id="drawText" placeholder="Type a note, press Enter" style="display:none"></div><canvas id="depth" style="display:none"></canvas><div id="bookBox" class="sub" style="display:none"></div><div id="tradesBox" class="sub" style="display:none"></div></div>
+    <div class="navbar" id="navBar"><button data-n="reset" aria-label="Back to the latest candle">↺</button><button data-n="out" aria-label="Zoom out">−</button><button data-n="in" aria-label="Zoom in">+</button><button data-n="left" aria-label="Scroll left">◀</button><button data-n="right" aria-label="Scroll right">▶</button><span class="hq" data-h="navbar">?</span><span style="flex:1"></span><span class="mono mut" id="clock" style="font-size:11px"></span><button data-sc="pct">%</button><button data-sc="log">LOG</button><button data-sc="auto">AUTO</button><span class="hq" data-h="scale">?</span></div>
+    <div id="explainBox" class="note" style="display:none;margin:8px 0;padding:10px 12px;border:1px solid var(--glassB);border-radius:10px;background:var(--glass);line-height:1.5"></div><div class="legend"><span><i style="background:var(--acc)"></i>Entry</span><span><i style="background:#ff8a95"></i>Stop</span><span><i style="background:#5ff0bd"></i>Target</span></div>
+    <div class="tabs wrapt" id="panelTabs"><button class="on" data-p="positions">Positions</button><button data-p="open">Open orders</button><button data-p="history">Order history</button><button data-p="assets">Assets</button><button data-p="fills">Trade history</button><button data-p="balance">Balance summary</button><span class="hq" data-h="paneltabs">?</span></div>
+    <div id="panelBox" class="pbox"></div>
+  </div>
+
+  <!-- ===== TRADE (market browser) ===== -->
+  <div class="view" id="v-trade" style="display:none">
+    <h2 class="vt">Trade</h2>
+    <div class="tiles" id="tiles"></div>
+    <input id="pkSearch" placeholder="Search markets" autocomplete="off">
+    <div class="chips" id="pkSub"></div>
+    <div id="pkList"></div>
+  </div>
+
+  <!-- ===== TRANSACTIONS ===== -->
+  <div class="view" id="v-tx" style="display:none">
+    <h2 class="vt">Transactions <span class="hq" data-h="transactions">?</span></h2>
+    <div id="txList" class="pbox"></div>
+  </div>
+
+  <!-- ===== COACH ===== -->
+  <div class="view" id="v-coach" style="display:none">
+    <div class="start"><button class="btn pri" id="startTour">▶ Start guided trade</button></div>
+    <section class="panel" id="s-learn"><div class="ph"><h2><b>★</b>Learning mode <span class="hq" data-h="learn">?</span></h2><button class="btn" id="learnTog" style="padding:6px 12px;font-size:12px">On</button></div>
+      <div class="note" style="margin:0 0 8px" id="learnNote"></div><div class="chips" id="capChips" style="padding:0"></div><div id="modeBox" style="margin-top:12px"></div></section>
+    <section class="panel" id="s-progress"><div class="ph"><h2><b>◎</b>Checkpoints &amp; achievements</h2><span class="hq" data-h="progress">?</span></div><div id="cpList"></div><div id="badgeList" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:10px"></div></section>
+    <section class="panel" id="s-lessons"><div class="ph"><h2><b>✎</b>Your lessons</h2><span class="hq" data-h="lessons">?</span></div><div id="score"></div><div id="lessonList"></div></section>
+    <section class="panel" id="s-account"><div class="ph"><h2><b>1</b>Account &amp; market</h2><button class="q" data-step="0">?</button></div>
+      <div class="grid"><div class="stat"><div class="k">Buying power</div><div class="v" id="bal">—</div></div><div class="stat"><div class="k">Price</div><div class="v" id="px">—</div></div><div class="stat"><div class="k">Market type</div><div class="v" id="kind">—</div></div></div>
+      <div class="grid" style="margin-top:8px"><div class="stat"><div class="k">Fee in</div><div class="v" id="feeIn">—</div></div><div class="stat"><div class="k">Fee out (stop)</div><div class="v" id="feeOut">—</div></div><div class="stat"><div class="k">Can short</div><div class="v" id="canShort">—</div></div></div>
+      <div class="note" id="acctNote"></div></section>
+    <section class="panel" id="s-regime"><div class="ph"><h2><b>2</b>Market state</h2><button class="q" data-step="1">?</button></div>
+      <div class="grid"><div class="stat"><div class="k">Volatility</div><div class="v" id="rVol">—</div></div><div class="stat"><div class="k">Trend strength</div><div class="v" id="rTrend">—</div></div><div class="stat"><div class="k">Session (UTC)</div><div class="v" id="rSess">—</div></div></div>
+      <div class="note" id="regNote"></div></section>
+    <section class="panel" id="s-brain"><div class="ph"><h2><b>3</b>Brain · XVI DNA strategies</h2><button class="q" data-step="2">?</button></div>
+      <div id="brainHead" class="note" style="margin:0 0 10px"></div><div id="brainList"></div></section>
+    <section class="panel" id="s-lab"><div class="ph"><h2><b>★</b>Research lab · self-improving brain <span class="hq" data-h="lab">?</span></h2></div><div id="labBox"></div></section>
+    <section class="panel" id="s-fees"><div class="ph"><h2><b>4</b>Fee reality check</h2><button class="q" data-step="3">?</button></div>
+      <div class="grid"><div class="stat"><div class="k">Round trip</div><div class="v amb" id="rt">—</div></div><div class="stat"><div class="k">Break-even move</div><div class="v amb" id="be">—</div></div><div class="stat"><div class="k">In ATRs</div><div class="v" id="beAtr">—</div></div></div>
+      <div class="note" id="feeNote"></div></section>
+    <section class="panel" id="s-plan"><div class="ph"><h2><b>5</b>Plan · <span id="planFor" style="color:var(--txt)"></span></h2><button class="q" data-step="4">?</button></div>
+      <div id="planTag"></div><div class="bar" id="rrBar"></div><div class="kv" id="planKv"></div>
+      <div class="btns"><button class="btn pri" id="openTicket2">Open the order ticket</button></div></section>
+    <section class="panel" id="s-size"><div class="ph"><h2><b>6</b>Position size</h2><button class="q" data-step="5">?</button></div>
+      <div class="row"><label>Risk per trade</label><input id="inRisk" inputmode="decimal"><span class="note" style="margin:0">% of account</span></div><div class="kv" id="sizeKv"></div></section>
+    <section class="panel" id="s-verdict"><div class="ph"><h2><b>7</b>Go / no-go</h2><button class="q" data-step="6">?</button></div>
+      <div id="verdict"></div><ul class="checks" id="checks"></ul>
+      <div class="note">Orders are only sent when you preview, place and confirm them in the ticket. Backtests cover only recent history and prove nothing about the future. Coaching, not financial advice.</div></section>
+    <section class="panel" id="s-lingo"><div class="ph"><h2><b>A–Z</b>Market lingo</h2></div><input id="lgSearch" placeholder="Search a term, e.g. leverage" autocomplete="off" style="width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:10px;color:var(--txt);font:500 14px Inter;margin-bottom:8px"><div id="lgList" class="pbox" style="max-height:420px;overflow:auto"></div></section>
+  </div>
+</div>
+
+<!-- sticky Buy / Sell + bottom nav -->
+<div id="dock">
+  <div class="bs" id="bsRow"><button class="buy" id="buyBtn">Buy</button><button class="sell" id="sellBtn">Sell</button></div>
+  <nav id="nav"><button data-v="spot" class="on"><i>▮▯▮</i>Spot</button><button data-v="deriv"><i>◆</i>Derivatives</button><button data-v="trade"><i>↗</i>Trade</button><button data-v="tx"><i>☰</i>Transactions</button><button data-v="coach"><i>★</i>Coach</button></nav>
+</div>
+
+<!-- order ticket -->
+<div id="tkDim"></div>
+<div id="ticket" role="dialog" aria-label="Order ticket">
+  <div class="tk-h"><b id="tkTitle">BTC-USD</b><button class="x" id="tkX" aria-label="Close">×</button></div>
+  <div class="tk-b">
+    <div class="bsTabs" id="tkSide"><button data-s="1" class="on buy">Buy</button><button data-s="-1" class="sell">Sell</button></div>
+    <div class="tabs" id="tkType"><button data-t="bracket" class="on">Bracket</button><button data-t="limit">Limit</button><button data-t="market">Market</button><span class="hq" data-h="ordertype">?</span></div>
+    <div class="coachbox" id="tkCoach"></div>
+    <div class="fld"><label>Amount <span class="hq" data-h="amount">?</span></label><div class="inw"><input id="inAmt" inputmode="decimal"><button class="unit" id="amtUnit">USD</button></div><div class="quick" id="amtQuick"></div></div>
+    <div class="fld" id="fEntry"><label>Limit price <span class="hq" data-h="limitprice">?</span></label><div class="inw"><input id="inEntry" inputmode="decimal"><span class="unit2">USD</span></div><div class="quick"><button data-q="bid">Bid</button><button data-q="mid">Mid</button><button data-q="ask">Ask</button></div></div>
+    <div class="fld" id="fTgt"><label>Take profit price <span class="hq" data-h="takeprofit">?</span></label><div class="inw"><input id="inTgt" inputmode="decimal"><span class="unit2">USD</span></div></div>
+    <div class="fld" id="fStop"><label>Stop loss price <span class="hq" data-h="stoploss">?</span></label><div class="inw"><input id="inStop" inputmode="decimal"><span class="unit2">USD</span></div></div>
+    <div class="btns" style="margin-top:0"><button class="btn" id="autoPlan">✦ Use coach's plan</button></div>
+    <div id="tkAdv"></div>
+    <div class="kv" id="tkSum"></div>
+    <ul class="checks" id="tkChecks" style="margin-top:10px"></ul>
+    <div class="btns"><button class="btn go" id="previewBtn">Preview order</button><button class="btn" id="copyBtn">Copy order for Claude</button></div>
+    <div id="previewOut"></div>
+    <div class="note">An order is sent only after you preview it, tap Place order and confirm. Coaching, not financial advice.</div>
+  </div>
+</div>
+
+<div id="askDim"></div>
+<div id="ask" role="dialog" aria-label="Ask the teacher">
+  <div class="tk-h"><b>Ask the teacher</b><button class="x" id="askX" aria-label="Close">×</button></div>
+  <div id="askLog"></div>
+  <div class="askrow"><button class="btn" id="micBtn" style="display:none" aria-label="Speak your question">🎤</button><input id="askIn" placeholder="Type a question, e.g. why is my stop too tight?" autocomplete="off"><button class="btn pri" id="askSend">Send</button></div>
+</div>
+<div id="pop" role="dialog" aria-live="polite"></div>
+<div id="toast" role="status"></div>
+
+<script>/*BRAIN*/</script>
+<script>/*CORE*/</script>
+<script>/*UI*/</script>
+</body>
+</html>
