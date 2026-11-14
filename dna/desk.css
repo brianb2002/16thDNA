@@ -1,0 +1,93 @@
+/* 16th DNA desk: mode bar, panels and Simulation mode (dark holo glass, the 3D-key look in DOM form) */
+.dna{--dk-ink:#eaf6ff;--dk-dim:#9cc4e6;--dk-cy:#7fe3ff;--dk-gr:#2ee6a8;--dk-rd:#ff5a76;--dk-am:#ffc14d;--dk-gold:#ffcf5a;--dk-glass:rgba(6,22,56,.86);--dk-edge:rgba(127,208,255,.55);
+  font-family:Rajdhani,Inter,system-ui,sans-serif;color:var(--dk-ink);box-sizing:border-box}
+.dna *,.dna *::before,.dna *::after{box-sizing:border-box}
+.dna button{font:inherit;color:inherit;cursor:pointer}
+.dna button:focus-visible,.dna input:focus-visible,.dna select:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.dna .g{color:var(--dk-gr)}.dna .r{color:var(--dk-rd)}
+
+/* mode bar */
+#dnaModes{position:fixed;z-index:60;top:calc(10px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:4px;padding:5px;border-radius:16px;
+  background:var(--dk-glass);border:1px solid var(--dk-edge);box-shadow:0 0 22px rgba(74,168,255,.4);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);max-width:calc(100vw - 32px);overflow-x:auto;scrollbar-width:none}
+#dnaModes .dna-brand{font:800 12px/1 Orbitron,sans-serif;letter-spacing:.14em;color:var(--dk-gold);padding:0 8px 0 6px;white-space:nowrap;text-shadow:0 0 10px rgba(255,200,80,.6)}
+#dnaModes button{min-height:36px;padding:0 12px;border-radius:11px;border:1px solid transparent;background:none;font:700 12px/1 Orbitron,sans-serif;letter-spacing:.06em;white-space:nowrap;
+  box-shadow:inset 0 -3px 0 rgba(127,227,255,.0)}
+#dnaModes button:hover{border-color:var(--dk-edge)}
+#dnaModes button[aria-pressed="true"]{background:linear-gradient(180deg,rgba(127,227,255,.55),rgba(30,100,220,.35));border-color:#bfeaff;box-shadow:0 4px 0 rgba(30,100,220,.55),0 0 16px rgba(74,168,255,.7);transform:translateY(-2px)}
+#dnaExit{position:fixed;z-index:61;top:calc(10px + env(safe-area-inset-top,0px));right:calc(12px + env(safe-area-inset-right,0px));width:44px;height:44px;border-radius:12px;display:none;
+  background:var(--dk-glass);border:1px solid var(--dk-edge);font-size:20px;box-shadow:0 0 18px rgba(74,168,255,.45)}
+:root[data-dna-mode="full"] #dnaModes,:root[data-dna-mode="full"] #xdevLaunch{display:none!important}
+:root[data-dna-mode="full"] #dnaExit{display:block}
+@media (max-width:560px){#dnaModes .dna-brand{display:none}#dnaModes button{padding:0 9px;font-size:10.5px}}
+
+/* toast */
+#dnaToast{position:fixed;z-index:2147483000;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);opacity:0;pointer-events:none;transition:.25s;max-width:min(560px,calc(100vw - 32px));
+  padding:10px 16px;border-radius:12px;background:var(--dk-glass);border:1px solid var(--dk-edge);font:600 15px/1.35 Rajdhani,sans-serif;box-shadow:0 0 22px rgba(74,168,255,.45)}
+#dnaToast.on{opacity:1;transform:translate(-50%,0)}
+
+/* panels */
+.dna-modal{position:fixed;inset:0;z-index:2147482000;display:grid;place-items:center;padding:16px;background:rgba(2,8,22,.6);backdrop-filter:blur(3px)}
+.dna-card{width:min(560px,100%);max-height:min(86vh,860px);display:flex;flex-direction:column;border-radius:18px;border:1px solid var(--dk-edge);background:linear-gradient(180deg,#0b2452f0,#061430f2);box-shadow:0 0 40px rgba(74,168,255,.45)}
+.dna-card.wide{width:min(860px,100%)}
+.dna-hd{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px 10px;border-bottom:1px solid rgba(127,208,255,.25)}
+.dna-hd h2{margin:0;font:800 16px/1.2 Orbitron,sans-serif;letter-spacing:.1em;color:var(--dk-cy);text-shadow:0 0 12px rgba(127,227,255,.6)}
+.dna-x{min-width:40px;min-height:40px;padding:0 12px;border-radius:12px;border:1px solid var(--dk-edge);background:rgba(127,227,255,.1);font:700 13px Orbitron,sans-serif}
+.dna-bd{padding:14px 16px 18px;overflow:auto}
+.dna-p{margin:0 0 10px;font:500 15px/1.45 Rajdhani,sans-serif;color:var(--dk-dim)}
+.dna-p b{color:var(--dk-ink)}
+.dna-sec{padding:12px;margin:0 0 10px;border-radius:14px;border:1px solid rgba(127,208,255,.2);background:rgba(10,40,90,.25)}
+.dna-sec.hi{border-color:var(--dk-cy);box-shadow:0 0 18px rgba(127,227,255,.35)}
+.dna-sec h3,.dna-bd h3{margin:0 0 8px;font:800 13px/1.2 Orbitron,sans-serif;letter-spacing:.12em;color:var(--dk-gold)}
+.dna-row{display:flex;gap:8px;align-items:center;margin:8px 0}.dna-row.wrap{flex-wrap:wrap}
+.dna-in{flex:1;min-height:42px;width:100%;padding:0 12px;border-radius:12px;border:1px solid var(--dk-edge);background:rgba(2,10,30,.7);color:var(--dk-ink);font:600 15px Rajdhani,sans-serif}
+.dna-lab{display:grid;gap:4px;margin:8px 0;font:700 12px Orbitron,sans-serif;letter-spacing:.06em;color:var(--dk-dim)}
+/* DOM version of the chosen 3D glass key */
+.dna-k{min-height:44px;padding:0 16px;border-radius:12px;border:2px solid rgba(127,227,255,.95);background:linear-gradient(180deg,rgba(127,227,255,.5),rgba(127,227,255,.18) 55%,rgba(6,22,56,.8));
+  font:800 13px/1 Orbitron,sans-serif;letter-spacing:.08em;box-shadow:0 6px 0 rgba(127,227,255,.35),0 10px 22px rgba(74,168,255,.45);transition:transform .08s,box-shadow .08s}
+.dna-k:active{transform:translateY(5px);box-shadow:0 1px 0 rgba(127,227,255,.35),0 4px 12px rgba(74,168,255,.45)}
+.dna-k:disabled{opacity:.45;cursor:not-allowed}
+.dna-chip{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 12px;border-radius:999px;border:1px solid var(--dk-edge);background:rgba(127,227,255,.1);font:600 14px Rajdhani,sans-serif}
+.dna-chat{max-height:38vh;min-height:60px;overflow:auto;display:flex;flex-direction:column;gap:8px;margin:6px 0}
+.dna-msg{padding:9px 12px;border-radius:12px;max-width:88%;white-space:pre-wrap;font:500 15px/1.45 Rajdhani,sans-serif;overflow-wrap:anywhere}
+.dna-msg.me{align-self:flex-end;background:rgba(59,140,255,.35);border:1px solid rgba(127,208,255,.5)}
+.dna-msg.ai{align-self:flex-start;background:rgba(10,40,90,.55);border:1px solid rgba(127,208,255,.25)}
+.dna-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;margin-bottom:12px}
+.dna-tile{display:grid;gap:4px;text-align:left;padding:12px;border-radius:14px;border:1px solid var(--dk-edge);background:linear-gradient(180deg,rgba(127,227,255,.18),rgba(6,22,56,.6));box-shadow:0 5px 0 rgba(127,227,255,.2)}
+.dna-tile b{font:800 13px/1.25 Orbitron,sans-serif;letter-spacing:.05em}.dna-tile span{font:500 14px/1.35 Rajdhani,sans-serif;color:var(--dk-dim)}
+.dna-tile.won{border-color:var(--dk-gold);box-shadow:0 5px 0 rgba(255,200,80,.3),0 0 16px rgba(255,200,80,.3)}
+.dna-art{padding:12px;border-radius:14px;border:1px solid rgba(127,208,255,.3);background:rgba(10,40,90,.3)}.dna-art p{font:500 15.5px/1.5 Rajdhani,sans-serif;margin:0 0 8px}
+.dna-tb{width:100%;border-collapse:collapse;margin:0 0 12px;font:600 14px 'Share Tech Mono',monospace}
+.dna-tb th,.dna-tb td{padding:7px 8px;border-bottom:1px solid rgba(127,208,255,.15);text-align:left;vertical-align:top}
+.dna-tb th{color:var(--dk-dim);font:700 12px Orbitron,sans-serif;letter-spacing:.04em}
+
+/* Simulation mode */
+.dna-sim{position:fixed;inset:0;z-index:2147481000;display:flex;flex-direction:column;background:radial-gradient(ellipse at 50% 0%,#0b2452 0%,#030a1c 70%);padding:calc(10px + env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) calc(12px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));gap:10px}
+.sim-top{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.sim-plats{display:flex;gap:6px;flex-wrap:wrap}
+.sim-plats button{min-height:40px;padding:0 14px;border-radius:12px;border:1px solid var(--dk-edge);background:rgba(127,227,255,.08);font:800 12px Orbitron,sans-serif;letter-spacing:.06em}
+.sim-plats button[aria-pressed="true"]{background:linear-gradient(180deg,rgba(255,207,90,.55),rgba(160,100,0,.3));border-color:var(--dk-gold);box-shadow:0 4px 0 rgba(255,200,80,.4),0 0 14px rgba(255,200,80,.5)}
+.sim-tag{font:700 11px Orbitron,sans-serif;letter-spacing:.08em;color:var(--dk-am);margin-left:auto}
+.sim-main{flex:1;min-height:0;display:grid;grid-template-columns:260px 1fr;gap:12px}
+.sim-steps{padding:12px;border-radius:14px;border:1px solid var(--dk-edge);background:var(--dk-glass);overflow:auto}
+.sim-steps h3{margin:0 0 6px;font:800 14px Orbitron,sans-serif;color:var(--dk-gold);letter-spacing:.08em}.sim-steps p{margin:0 0 10px;color:var(--dk-dim);font:500 14.5px/1.4 Rajdhani,sans-serif}
+.sim-steps ol{margin:0;padding-left:20px;display:grid;gap:8px;font:600 15px/1.35 Rajdhani,sans-serif}.sim-steps li.ok{color:var(--dk-gr)}.sim-steps li.ok::marker{content:"✓  "}.sim-steps li.now{color:#fff;text-shadow:0 0 10px rgba(127,227,255,.8)}
+.sim-app{min-height:0;border-radius:14px;overflow:auto;background:#0a0f1a;border:1px solid rgba(255,255,255,.12)}
+.sim-app canvas{width:100%;min-height:200px;display:block}
+.sim-pro,.sim-broker{display:grid;grid-template-columns:240px 1fr 220px;height:100%;min-height:420px}
+.sim-pro>div,.sim-broker>div{padding:10px;border-right:1px solid rgba(255,255,255,.08);min-width:0;display:flex;flex-direction:column;gap:8px}
+.sim-pro .cb,.sim-broker .cb{min-height:300px}.sim-pro .cb canvas,.sim-broker .cb canvas{flex:1 1 0;height:0;min-height:240px}
+.sim-pair{font:700 16px 'Share Tech Mono',monospace}.sim-pair b{color:var(--dk-cy);margin-left:8px}
+.sim-tf{display:flex;gap:4px;flex-wrap:wrap}.sim-tf button{min-height:30px;padding:0 10px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:none;font:600 13px 'Share Tech Mono',monospace}.sim-tf button.on{background:#1f6feb;border-color:#1f6feb}
+.sim-form{display:grid;gap:8px}.sim-form label{display:grid;gap:4px;font:600 13px Rajdhani,sans-serif;color:var(--dk-dim)}
+.sim-seg{display:grid;grid-template-columns:1fr 1fr;border-radius:10px;overflow:hidden;border:1px solid rgba(255,255,255,.15)}
+.sim-seg button{min-height:40px;border:0;background:none;font:800 14px Rajdhani,sans-serif}.sim-seg .on.b{background:#16a34a}.sim-seg .on.s{background:#dc2626}
+.sim-fee{margin:0;font:500 13px 'Share Tech Mono',monospace;color:var(--dk-dim)}
+.sim-go{min-height:48px;border-radius:12px;border:0;font:800 16px Rajdhani,sans-serif;letter-spacing:.04em}.sim-go.b{background:#16a34a}.sim-go.s{background:#dc2626}
+.sim-book{font:500 13px 'Share Tech Mono',monospace;display:grid;gap:2px}.sim-book div{display:flex;justify-content:space-between}.sim-book .r span:first-child{color:var(--dk-rd)}.sim-book .g span:first-child{color:var(--dk-gr)}
+.sim-book .m{justify-content:center;font-size:16px;color:#fff;padding:6px 0}
+.sim-simple{max-width:520px;margin:0 auto;padding:16px;display:grid;gap:12px}.sim-simple canvas{height:220px}
+.sim-big{display:grid;font:700 18px Rajdhani,sans-serif}.sim-big b{font:800 40px Rajdhani,sans-serif}.sim-big i{font-style:normal}
+.sim-watch{display:grid;gap:4px}.sim-watch button{display:grid;grid-template-columns:1fr auto;gap:0 8px;text-align:left;padding:8px;border-radius:8px;border:1px solid transparent;background:none;font:600 14px 'Share Tech Mono',monospace}
+.sim-watch button.on{border-color:#1f6feb;background:rgba(31,111,235,.15)}.sim-watch i{font-style:normal;grid-column:2}
+.sim-hist{font:500 13px 'Share Tech Mono',monospace;display:grid;gap:3px}.sim-hist h4{margin:4px 0;font:700 12px Orbitron,sans-serif;color:var(--dk-dim)}
+@media (max-width:900px){.sim-main{grid-template-columns:1fr}.sim-steps{max-height:150px}.sim-pro,.sim-broker{grid-template-columns:1fr}.sim-pro>div,.sim-broker>div{border-right:0;border-bottom:1px solid rgba(255,255,255,.08)}}
