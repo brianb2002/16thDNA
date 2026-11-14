@@ -1,0 +1,177 @@
+<title>16th DNA Layouts</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+/* Layout concept: four first-person desk layouts, each a 16:9 frame drawn over a dimmed render of the office; tabs switch layout, notes list what sits where. Single dark holo look on purpose. */
+:root{--bg:#030a18;--panel:rgba(6,24,60,.62);--edge:rgba(127,215,255,.7);--ink:#eef8ff;--dim:#9fc4e8;--acc:#7fe3ff;--good:#2ee6a8;--bad:#ff5a76;--amb:#ffc14d;
+  --f-d:Orbitron,Rajdhani,system-ui,sans-serif;--f-b:Rajdhani,system-ui,sans-serif;--f-m:"Share Tech Mono",ui-monospace,monospace;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-b)}
+.wrap{max-width:1180px;margin:0 auto;padding-block:20px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:16px}
+h1{margin:0;font:900 clamp(20px,3vw,30px)/1.1 var(--f-d);letter-spacing:.08em;color:var(--acc);text-wrap:balance}
+.lede{margin:4px 0 0;font:600 16px/1.45 var(--f-b);color:var(--dim);max-width:70ch}
+.tabs{display:flex;flex-wrap:wrap;gap:8px}
+.tabs button{min-height:44px;padding:0 16px;border-radius:12px;border:1px solid var(--edge);background:var(--panel);color:var(--ink);font:800 13px/1 var(--f-d);letter-spacing:.06em;cursor:pointer}
+.tabs button[aria-pressed="true"]{background:linear-gradient(180deg,rgba(90,190,255,.6),rgba(30,100,220,.5));border-color:#cfefff;box-shadow:0 0 16px rgba(74,168,255,.7)}
+.tabs button:focus-visible,.modes button:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.frame{position:relative;width:100%;aspect-ratio:16/9;border-radius:16px;overflow:hidden;border:1px solid var(--edge);box-shadow:0 0 30px rgba(60,160,255,.25);container-type:inline-size;background:#020814 var(--bgimg) center/cover no-repeat}
+.frame::after{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(180deg,rgba(140,220,255,.035) 0 1px,transparent 1px 3px)}
+.L{position:absolute;inset:0;display:none}.L.on{display:block}
+/* building blocks, sized off the frame width */
+.s{position:absolute;background:var(--panel);border:.12cqw solid var(--edge);border-radius:1cqw;box-shadow:0 0 1.6cqw rgba(74,168,255,.35),inset 0 0 1.2cqw rgba(74,168,255,.12);padding:.8cqw 1cqw;overflow:hidden;backdrop-filter:blur(2px)}
+.s h4{margin:0 0 .5cqw;font:800 1.15cqw/1 var(--f-d);letter-spacing:.1em;color:var(--acc)}
+.s p,.s li{margin:0;font:600 1.05cqw/1.35 var(--f-b);color:var(--dim)}
+.s ul{margin:0;padding:0;list-style:none;display:grid;gap:.35cqw}
+.b{position:absolute;display:grid;place-items:center;text-align:center;border:.12cqw solid var(--edge);border-radius:.9cqw;background:linear-gradient(180deg,rgba(80,170,255,.35),rgba(8,30,80,.7));box-shadow:0 0 1.4cqw rgba(74,168,255,.5);font:800 1.05cqw/1.05 var(--f-d);letter-spacing:.06em;color:var(--ink)}
+.b small{display:block;font:600 .78cqw/1.1 var(--f-b);color:var(--dim);letter-spacing:0;margin-top:.2cqw}
+.b.buy{background:linear-gradient(180deg,rgba(46,230,168,.9),rgba(10,90,70,.85));border-color:#bfffe9;box-shadow:0 0 2cqw rgba(46,230,168,.6);font-size:1.6cqw}
+.b.sell{background:linear-gradient(180deg,rgba(255,90,118,.9),rgba(110,20,40,.85));border-color:#ffd0d9;box-shadow:0 0 2cqw rgba(255,90,118,.6);font-size:1.6cqw}
+.b.round{border-radius:50%}
+.b.ic{font-size:.95cqw}.b.ic i{display:block;font-style:normal;font-size:1.7cqw;line-height:1;margin-bottom:.25cqw}
+.mode{position:absolute;display:flex;gap:.3cqw;padding:.3cqw;border:.12cqw solid var(--edge);border-radius:99cqw;background:rgba(4,18,46,.8);box-shadow:0 0 1.4cqw rgba(74,168,255,.45)}
+.mode span{padding:.45cqw 1cqw;border-radius:99cqw;font:800 .9cqw/1 var(--f-d);letter-spacing:.08em;color:var(--dim)}
+.mode span.on{background:var(--acc);color:#03203a}
+.dev{position:absolute;left:1.2cqw;bottom:1.2cqw;padding:.45cqw .9cqw;border:.12cqw solid var(--edge);border-radius:.7cqw;background:rgba(4,18,46,.85);font:800 .85cqw/1 var(--f-d);letter-spacing:.14em;color:var(--ink)}
+.clock{position:absolute;display:flex;gap:1.6cqw;font:700 .85cqw/1.15 var(--f-m);color:var(--acc);text-align:center}
+.clock b{display:block;font:800 .75cqw/1 var(--f-d);letter-spacing:.08em;color:var(--dim)}
+.tick{position:absolute;white-space:nowrap;overflow:hidden;font:700 .95cqw/1 var(--f-m);color:var(--acc);border-block:.1cqw solid rgba(127,215,255,.35);padding:.35cqw 0;background:rgba(4,18,46,.55)}
+.tick em{font-style:normal;color:var(--good)}.tick u{text-decoration:none;color:var(--bad)}
+.chart svg{display:block;width:100%;height:calc(100% - 3.2cqw)}
+.chart .row{display:flex;gap:.4cqw;margin-top:.4cqw}.chart .row span{flex:1;text-align:center;padding:.35cqw 0;border:.1cqw solid var(--edge);border-radius:99cqw;font:800 .8cqw/1 var(--f-d);color:var(--dim)}.chart .row span.on{background:var(--acc);color:#03203a}
+.big{font:900 2.6cqw/1 var(--f-d)!important;color:var(--amb)!important;margin:.4cqw 0}
+.pill{display:inline-block;padding:.25cqw .7cqw;border-radius:99cqw;font:800 .8cqw/1 var(--f-d);background:var(--amb);color:#2a1a00}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:12px}
+.note{background:rgba(6,24,60,.55);border:1px solid rgba(127,215,255,.35);border-radius:14px;padding:14px 16px;min-width:0}
+.note h3{margin:0 0 6px;font:800 14px/1.2 var(--f-d);letter-spacing:.08em;color:var(--acc)}
+.note p,.note li{margin:0;font:600 15px/1.45 var(--f-b);color:var(--dim)}
+.note ul{margin:0;padding-left:18px;display:grid;gap:4px}
+.note b{color:var(--ink)}
+.modes h2{margin:4px 0 8px;font:800 16px/1.2 var(--f-d);letter-spacing:.08em;color:var(--acc)}
+@media (prefers-reduced-motion:no-preference){.b,.s{transition:box-shadow .2s}}
+</style>
+<div class="wrap">
+  <div><h1>16TH DNA · DESK LAYOUTS</h1><p class="lede">Four ways to lay out the buttons, all seen from the chair. The hologram office is the dashboard; the switch at the top changes to Full screen or Simulation. Dev mode stays in every layout. Pick one, or mix parts.</p></div>
+  <div class="tabs" role="group" aria-label="Choose a layout" id="tabs">
+    <button type="button" data-l="A" aria-pressed="true">A · COCKPIT WINGS</button>
+    <button type="button" data-l="B" aria-pressed="false">B · ONE ARC</button>
+    <button type="button" data-l="C" aria-pressed="false">C · THREE ZONES</button>
+    <button type="button" data-l="D" aria-pressed="false">D · FLOATING DOCK</button>
+  </div>
+  <div class="frame" id="frame" role="img" aria-label="First-person mockup of the selected layout">
+
+    <!-- A: cockpit wings -->
+    <div class="L on" data-l="A">
+      <div class="clock" style="left:50%;transform:translateX(-50%);top:1.6cqw"><div><b>NEW YORK</b>04:58</div><div><b>LONDON</b>09:58</div><div><b>TOKYO</b>18:58</div><div><b>SYDNEY</b>20:58</div></div>
+      <div class="mode" style="left:50%;transform:translateX(-50%);top:5cqw"><span class="on">DASHBOARD</span><span>FULL SCREEN</span><span>SIMULATION</span></div>
+      <div class="s chart" style="left:24%;top:9.5cqw;width:52%;height:25cqw"><h4>BTC-USD · 15m · 67,171.00</h4><div data-chart></div><div class="row"><span class="on">CHART</span><span>BOOK</span><span>JOURNAL</span><span>PROGRESS</span></div></div>
+      <div class="s" style="left:3%;top:9.5cqw;width:19%;height:34cqw;transform:perspective(60cqw) rotateY(18deg)"><h4>LEARN</h4></div>
+      <div class="b" style="left:4.4%;top:13.5cqw;width:16%;height:4.4cqw">COACH<small>verdict · plan</small></div>
+      <div class="b" style="left:4.4%;top:18.6cqw;width:16%;height:4.4cqw">LESSONS</div>
+      <div class="b" style="left:4.4%;top:23.7cqw;width:16%;height:4.4cqw">RESEARCH LAB</div>
+      <div class="b" style="left:4.4%;top:28.8cqw;width:16%;height:4.4cqw">JOURNAL</div>
+      <div class="b" style="left:4.4%;top:33.9cqw;width:16%;height:4.4cqw">PROGRESS</div>
+      <div class="s" style="left:78%;top:9.5cqw;width:19%;height:34cqw;transform:perspective(60cqw) rotateY(-18deg)"><h4>TRADE</h4><p>BTC-USD · Limit<br>Entry 66,900 · Stop 66,420<br>Target 67,860 · $5</p></div>
+      <div class="b buy" style="left:79.6%;top:19.5cqw;width:16%;height:6cqw">BUY</div>
+      <div class="b sell" style="left:79.6%;top:26.6cqw;width:16%;height:6cqw">SELL</div>
+      <div class="b" style="left:79.6%;top:33.7cqw;width:16%;height:4cqw">POSITIONS</div>
+      <div class="tick" style="left:24%;width:52%;top:36cqw">&nbsp; BTC 67,171 <em>+1.2%</em> · ETH 3,544 <em>+1.3%</em> · SOL 200.7 <em>+3.3%</em> · XRP 0.581 <u>-0.4%</u> · DOGE 0.142 <em>+2.1%</em></div>
+      <div class="b" style="left:26%;top:40cqw;width:14%;height:4.6cqw">ASK COACH<small>voice · text</small></div>
+      <div class="b" style="left:41.5%;top:40cqw;width:17%;height:4.6cqw">BTC-USD ▾<small>pick a market</small></div>
+      <div class="b" style="left:60%;top:40cqw;width:14%;height:4.6cqw">1m 5m <b style="color:var(--acc)">15m</b> 1h 1D</div>
+      <div class="b" style="left:83%;top:47.6cqw;width:14%;height:3.6cqw">SETTINGS · CONNECT</div>
+      <div class="dev">DEV</div>
+    </div>
+
+    <!-- B: one arc -->
+    <div class="L" data-l="B">
+      <div class="mode" style="right:2%;top:1.6cqw"><span class="on">DASHBOARD</span><span>FULL SCREEN</span><span>SIMULATION</span></div>
+      <div class="clock" style="left:2%;top:1.8cqw"><div><b>NY</b>04:58</div><div><b>LDN</b>09:58</div><div><b>TKY</b>18:58</div><div><b>SYD</b>20:58</div></div>
+      <div class="s" style="left:2%;top:6cqw;width:17%;height:22cqw"><h4>COACH</h4><div class="big">WAIT</div><p>No signal yet.<br>Trend up · fees covered.</p></div>
+      <div class="s chart" style="left:21%;top:6cqw;width:58%;height:26cqw"><h4>BTC-USD · 15m · 67,171.00</h4><div data-chart></div><div class="row"><span class="on">CHART</span><span>BOOK</span><span>JOURNAL</span><span>PROGRESS</span><span>ACCOUNT</span></div></div>
+      <div class="s" style="left:81%;top:6cqw;width:17%;height:22cqw"><h4>ACCOUNT</h4><div class="big" style="color:var(--ink)!important">$7.74</div><p>USDC · practice / live<br>Trades 1 · Badges 3/14</p></div>
+      <div class="tick" style="left:0;right:0;top:33.4cqw">&nbsp; BTC 67,171 <em>+1.2%</em> · ETH 3,544 <em>+1.3%</em> · SOL 200.7 <em>+3.3%</em> · XRP 0.581 <u>-0.4%</u> · DOGE 0.142 <em>+2.1%</em> · ADA 0.462 <u>-0.8%</u> · AVAX 34.20 <em>+0.6%</em> · LINK 15.61 <em>+1.9%</em></div>
+      <div id="arc" style="position:absolute;inset:0"></div>
+      <div class="s" style="left:37%;top:38cqw;width:26%;height:7.4cqw;text-align:center;opacity:.9"><h4>ORDER TICKET</h4><p>Opens here when you press BUY or SELL</p></div>
+      <div class="dev">DEV</div>
+    </div>
+
+    <!-- C: three zones -->
+    <div class="L" data-l="C">
+      <div class="tick" style="left:0;right:0;top:1.2cqw">&nbsp; BTC 67,171 <em>+1.2%</em> · ETH 3,544 <em>+1.3%</em> · SOL 200.7 <em>+3.3%</em> · XRP 0.581 <u>-0.4%</u> · DOGE 0.142 <em>+2.1%</em> · ADA 0.462 <u>-0.8%</u> · LINK 15.61 <em>+1.9%</em></div>
+      <div class="clock" style="left:2%;top:4.4cqw"><div><b>NY</b>04:58</div><div><b>LDN</b>09:58</div><div><b>TKY</b>18:58</div><div><b>SYD</b>20:58</div></div>
+      <div class="mode" style="right:2%;top:4.2cqw"><span class="on">DASHBOARD</span><span>FULL SCREEN</span><span>SIMULATION</span></div>
+      <div class="s" style="left:2%;top:8.6cqw;width:22%;height:33cqw;transform:perspective(60cqw) rotateY(14deg)"><h4>LEARN ZONE</h4><div class="big">WAIT</div><p>Coach: no signal yet. Trend up, fees covered, no setup this candle.</p><p style="margin-top:.8cqw"><span class="pill">LESSON OF THE DAY</span><br>What is a stop loss?</p></div>
+      <div class="b" style="left:3.5%;top:31cqw;width:9%;height:3.8cqw">LESSONS</div><div class="b" style="left:13.5%;top:31cqw;width:9%;height:3.8cqw">RESEARCH</div>
+      <div class="b" style="left:3.5%;top:35.6cqw;width:9%;height:3.8cqw">JOURNAL</div><div class="b" style="left:13.5%;top:35.6cqw;width:9%;height:3.8cqw">PROGRESS</div>
+      <div class="s chart" style="left:26%;top:8.6cqw;width:48%;height:29cqw"><h4>CHART ZONE · BTC-USD · 15m</h4><div data-chart></div><div class="row"><span class="on">CHART</span><span>DEPTH</span><span>BOOK</span><span>TRADES</span></div></div>
+      <div class="s" style="left:76%;top:8.6cqw;width:22%;height:33cqw;transform:perspective(60cqw) rotateY(-14deg)"><h4>TRADE ZONE</h4><p>Side · Amount · Stop · Target</p></div>
+      <div class="b buy" style="left:77.5%;top:13.6cqw;width:9%;height:4.4cqw;font-size:1.25cqw">BUY</div><div class="b sell" style="left:87.5%;top:13.6cqw;width:9%;height:4.4cqw;font-size:1.25cqw">SELL</div>
+      <div class="s" style="left:77.5%;top:19cqw;width:19%;height:10.4cqw;box-shadow:none"><p>Amount <b style="color:var(--ink)">$5.00</b><br>Stop <b style="color:var(--bad)">66,420</b><br>Target <b style="color:var(--good)">67,860</b><br>Coach plan ✓</p></div>
+      <div class="b" style="left:77.5%;top:31cqw;width:9%;height:3.8cqw">PREVIEW</div><div class="b" style="left:87.5%;top:31cqw;width:9%;height:3.8cqw;border-color:var(--good)">PLACE</div>
+      <div class="b" style="left:77.5%;top:35.6cqw;width:19%;height:3.8cqw">OPEN ORDERS · 0</div>
+      <div class="b" style="left:28%;top:39.6cqw;width:13%;height:4.4cqw">TIMEFRAME</div><div class="b" style="left:42.5%;top:39.6cqw;width:15%;height:4.4cqw">BTC-USD ▾</div><div class="b" style="left:59%;top:39.6cqw;width:13%;height:4.4cqw">INDICATORS</div>
+      <div class="b" style="left:28%;top:45cqw;width:21%;height:3.6cqw">ASK COACH</div><div class="b" style="left:51%;top:45cqw;width:21%;height:3.6cqw">CONNECT · SETTINGS</div>
+      <div class="dev">DEV</div>
+    </div>
+
+    <!-- D: floating dock -->
+    <div class="L" data-l="D">
+      <div class="mode" style="left:50%;transform:translateX(-50%);top:1.6cqw"><span class="on">DASHBOARD</span><span>FULL SCREEN</span><span>SIMULATION</span></div>
+      <div class="s" style="right:2%;top:1.4cqw;width:15%;padding:.6cqw 1cqw"><p>$7.74 USDC · <b style="color:var(--good)">LIVE</b></p></div>
+      <div class="clock" style="left:2%;top:1.8cqw"><div><b>NY</b>04:58</div><div><b>LDN</b>09:58</div><div><b>TKY</b>18:58</div></div>
+      <div class="s chart" style="left:9%;top:6cqw;width:82%;height:30cqw"><h4>BTC-USD · 15m · 67,171.00 ▲ 1.21%</h4><div data-chart></div><div class="row"><span class="on">CHART</span><span>BOOK</span><span>DEPTH</span><span>TRADES</span></div></div>
+      <div class="s" style="left:2%;top:22cqw;width:15%;height:11cqw;border-radius:1.6cqw"><h4>COACH</h4><p><span class="pill">WAIT</span><br>No signal yet. Tap me for the plan.</p></div>
+      <div class="b sell" style="left:36%;top:37.4cqw;width:13%;height:5.6cqw;border-radius:99cqw 0 0 99cqw">SELL</div>
+      <div class="b" style="left:49.2%;top:37.4cqw;width:11%;height:5.6cqw;border-radius:0">BTC-USD<small>tap to change</small></div>
+      <div class="b buy" style="left:60.4%;top:37.4cqw;width:13%;height:5.6cqw;border-radius:0 99cqw 99cqw 0">BUY</div>
+      <div id="dock" style="position:absolute;inset:0"></div>
+      <div class="dev">DEV</div>
+    </div>
+  </div>
+
+  <div class="notes" id="notes"></div>
+
+  <div class="modes"><h2>THE THREE MODES (SAME IN EVERY LAYOUT)</h2>
+    <div class="notes">
+      <div class="note"><h3>DASHBOARD</h3><p>The hologram office. Look around from the chair, use the buttons on the desk, and see the coach, clocks and lessons around you.</p></div>
+      <div class="note"><h3>FULL SCREEN</h3><p>The room goes away. Chart, ticket, coach and watchlist fill the screen as a clean 2D layout for focused trading on a laptop or phone.</p></div>
+      <div class="note"><h3>SIMULATION</h3><p>Pick a platform (Coinbase, TradingView, Webull, NinjaTrader, thinkorswim, MetaTrader). The center screen becomes a practice replica of its layout, so you learn where everything is before trading there for real. The coach still explains each step.</p></div>
+      <div class="note"><h3>DEV MODE</h3><p>The DEV button stays in every layout and mode, so you can still move, add, recolor or erase anything yourself.</p></div>
+    </div>
+  </div>
+</div>
+<script>
+(function () {
+  const BG = /*BG*/"";
+  document.getElementById('frame').style.setProperty('--bgimg', 'url(' + BG + ')');
+  /* sample candles, same on every layout */
+  let s = 9; const r = () => (s = (s * 16807) % 2147483647) / 2147483647, bars = []; let p = 100;
+  for (let i = 0; i < 70; i++) { const o = p, c = o * (1 + (r() - .45) * .02), h = Math.max(o, c) * (1 + r() * .006), l = Math.min(o, c) * (1 - r() * .006); bars.push([o, h, l, c]); p = c; }
+  const lo = Math.min(...bars.map(b => b[2])), hi = Math.max(...bars.map(b => b[1])), W = 700, H = 220, Y = v => H - (v - lo) / (hi - lo) * (H - 10) - 5, bw = W / bars.length;
+  let e = bars[0][3]; const ema = bars.map(b => (e = b[3] * .1 + e * .9));
+  const svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" aria-hidden="true">' + bars.map((b, i) => { const up = b[3] >= b[0], col = up ? '#2ee6a8' : '#ff5a76', x = i * bw + bw / 2;
+    return '<line x1="' + x + '" x2="' + x + '" y1="' + Y(b[1]) + '" y2="' + Y(b[2]) + '" stroke="' + col + '" stroke-width="1.4"/><rect x="' + (x - bw * .32) + '" y="' + Y(Math.max(b[0], b[3])) + '" width="' + bw * .64 + '" height="' + Math.max(1.5, Math.abs(Y(b[0]) - Y(b[3]))) + '" fill="' + col + '"/>'; }).join('') +
+    '<polyline fill="none" stroke="#ffc14d" stroke-width="2.4" points="' + ema.map((v, i) => (i * bw + bw / 2) + ',' + Y(v)).join(' ') + '"/></svg>';
+  document.querySelectorAll('[data-chart]').forEach(d => d.innerHTML = svg);
+  /* B: the single arc of equal buttons along the desk */
+  const arcB = [['COACH'], ['LESSONS'], ['RESEARCH'], ['JOURNAL'], ['PROGRESS'], ['SELL', 'sell'], ['BTC-USD ▾'], ['BUY', 'buy'], ['PLATFORMS'], ['SETTINGS']], arc = document.getElementById('arc');
+  arcB.forEach((b, i) => { const t = (i - (arcB.length - 1) / 2) / ((arcB.length - 1) / 2), x = 50 + t * 44, y = 47 - (1 - t * t) * 2.6, rot = t * 9;
+    const el = document.createElement('div'); el.className = 'b' + (b[1] ? ' ' + b[1] : ''); el.style.cssText = 'left:calc(' + x + '% - 4.3%);top:' + y + 'cqw;width:8.6%;height:4.6cqw;transform:rotate(' + rot + 'deg);font-size:' + (b[1] ? 1.3 : .95) + 'cqw'; el.textContent = b[0]; arc.appendChild(el); });
+  /* D: the floating dock of round icon buttons */
+  const dockB = [['◎', 'COACH'], ['▤', 'LESSONS'], ['⚗', 'RESEARCH'], ['✎', 'JOURNAL'], ['★', 'PROGRESS'], ['▣', 'PLATFORMS'], ['🎙', 'ASK'], ['⚙', 'SETTINGS']], dock = document.getElementById('dock');
+  dockB.forEach((b, i) => { const x = 50 + (i - (dockB.length - 1) / 2) * 8.4; const el = document.createElement('div'); el.className = 'b ic round';
+    el.style.cssText = 'left:calc(' + x + '% - 3cqw);top:45.4cqw;width:6cqw;height:6cqw'; el.innerHTML = '<span><i>' + b[0] + '</i>' + b[1] + '</span>'; dock.appendChild(el); });
+  const NOTES = {
+    A: [['WHERE THINGS ARE', '<ul><li><b>Left wing:</b> Coach, Lessons, Research Lab, Journal, Progress</li><li><b>Right wing:</b> the trade plan, big BUY and SELL, Positions</li><li><b>Desk front:</b> Ask coach, market picker, timeframes</li><li><b>Top:</b> world clocks and the mode switch</li></ul>'], ['GOOD FOR', '<p>Learning on one side, trading on the other, like an airplane cockpit. Your hands never cross over.</p>'], ['TRADE-OFF', '<p>The wings angle in, so on a phone they get narrow.</p>']],
+    B: [['WHERE THINGS ARE', '<ul><li><b>Screens:</b> Coach, big chart, Account across the wall</li><li><b>Desk:</b> one curved arc of ten equal buttons: Coach, Lessons, Research, Journal, Progress, SELL, market, BUY, Platforms, Settings</li><li><b>Ticket:</b> pops up above the arc when you press BUY or SELL</li></ul>'], ['GOOD FOR', '<p>The simplest: every button in one row at the same height, easy to learn, matches the curved desk.</p>'], ['TRADE-OFF', '<p>Ten buttons in a row is a lot; trade and learn buttons sit side by side.</p>']],
+    C: [['WHERE THINGS ARE', '<ul><li><b>Left screen, Learn zone:</b> coach verdict, lesson of the day, Lessons, Research, Journal, Progress</li><li><b>Center, Chart zone:</b> chart with depth, book and trades</li><li><b>Right screen, Trade zone:</b> the whole ticket inline: BUY/SELL, amount, stop, target, PREVIEW, PLACE, open orders</li><li><b>Desk:</b> timeframe, market, indicators, Ask coach, Connect</li></ul>'], ['GOOD FOR', '<p>Closest to real trading platforms (chart in the middle, order entry on the right), which makes moving to a real platform easier.</p>'], ['TRADE-OFF', '<p>The busiest screen; more to read at once.</p>']],
+    D: [['WHERE THINGS ARE', '<ul><li><b>Center:</b> one big chart, nothing else in the way</li><li><b>Under it:</b> a SELL · market · BUY capsule</li><li><b>Bottom:</b> a floating dock of round icon buttons: Coach, Lessons, Research, Journal, Progress, Platforms, Ask, Settings</li><li><b>Coach:</b> a floating bubble on the left you can tap</li></ul>'], ['GOOD FOR', '<p>The cleanest and most modern; works best on phones and makes Full screen mode feel the same as the dashboard.</p>'], ['TRADE-OFF', '<p>Uses less of the 3D room; it feels more like an app than a desk.</p>']]
+  };
+  const notes = document.getElementById('notes');
+  function show(k) { document.querySelectorAll('.L').forEach(l => l.classList.toggle('on', l.dataset.l === k)); document.querySelectorAll('#tabs button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.l === k)));
+    notes.innerHTML = NOTES[k].map(n => '<div class="note"><h3>' + n[0] + '</h3>' + n[1] + '</div>').join(''); try { localStorage.setItem('dnaLayout', k); } catch (e) {} }
+  document.getElementById('tabs').addEventListener('click', e => { const b = e.target.closest('button[data-l]'); if (b) show(b.dataset.l); });
+  let k = 'A'; try { k = localStorage.getItem('dnaLayout') || 'A'; } catch (e) {} show(NOTES[k] ? k : 'A');
+})();
+</script>
