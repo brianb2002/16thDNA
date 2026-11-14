@@ -80,9 +80,9 @@ window.ProChart = function (host, opt) {
   S.up = S.up || T.up; S.dn = S.dn || T.dn;
   const persist = () => save(S);
   host.classList.add("pc"); host.innerHTML = `<div class="pc-top">${opt.compact ? "" : `<b class="pc-sym"></b>`}<div class="pc-tfs"></div><span class="pc-sep"></span><button type="button" class="pc-b" data-pc="type" title="Chart type">▥ <span class="pc-tl"></span></button><button type="button" class="pc-b" data-pc="ind" title="Indicators">ƒx Indicators</button><button type="button" class="pc-b" data-pc="set" title="Chart settings">⚙</button><button type="button" class="pc-b" data-pc="fit" title="Fit all candles">⤧</button><button type="button" class="pc-b" data-pc="shot" title="Clear drawings">🗑</button>${opt.onClose ? `<span class="pc-sp"></span><button type="button" class="pc-b pc-x" data-pc="close" aria-label="Close chart">✕</button>` : ""}</div>
-    <div class="pc-main">${opt.compact ? "" : `<div class="pc-tools" role="toolbar" aria-label="Drawing tools">${TOOLS.map(([k, ic, n]) => `<button type="button" data-tool="${k}" title="${n}" aria-label="${n}" aria-pressed="${k === "cross"}">${ic}</button>`).join("")}</div>`}<div class="pc-cv"><canvas></canvas><div class="pc-leg"></div></div></div><div class="pc-pop" hidden></div>`;
+    <div class="pc-main">${opt.compact ? "" : `<div class="pc-tools" role="toolbar" aria-label="Drawing tools">${TOOLS.map(([k, ic, n]) => `<button type="button" data-tool="${k}" title="${n}" aria-label="${n}" aria-pressed="${k === "cross"}">${ic}</button>`).join("")}</div>`}<div class="pc-cv"><canvas></canvas><div class="pc-leg"></div><div class="pc-nav" role="group" aria-label="Chart navigation"><button type="button" data-nav="out" title="Zoom out (−)" aria-label="Zoom out">−</button><button type="button" data-nav="in" title="Zoom in (+)" aria-label="Zoom in">+</button><button type="button" data-nav="back" title="Scroll back (←)" aria-label="Scroll back">◀</button><button type="button" data-nav="fwd" title="Scroll forward (→)" aria-label="Scroll forward">▶</button><button type="button" data-nav="live" class="pc-live" title="Jump to the live candle" hidden>⇥ Latest</button></div></div></div><div class="pc-pop" hidden></div>`;
   const cv = host.querySelector("canvas"), g = cv.getContext("2d"), leg = host.querySelector(".pc-leg"), pop = host.querySelector(".pc-pop"), box = host.querySelector(".pc-cv");
-  let B = [], RB = [], view = { n: opt.compact ? 70 : 120, off: 0 }, mouse = null, tool = "cross", drawing = null, selD = -1, W = 0, H = 0, dpr = 1, L = null, sym = opt.sym || "", tf = opt.tf || "";
+  let B = [], RB = [], view = { n: opt.compact ? 70 : 120, off: 0, pad: opt.compact ? 5 : 8 }, mouse = null, tool = "cross", drawing = null, selD = -1, W = 0, H = 0, dpr = 1, L = null, sym = opt.sym || "", tf = opt.tf || "";
   const drawsOf = () => (S.draw[sym] = S.draw[sym] || []);
   const ha = bs => { const o = []; bs.forEach((b, i) => { const c = (b.o + b.h + b.l + b.c) / 4, op = i ? (o[i - 1].o + o[i - 1].c) / 2 : (b.o + b.c) / 2; o.push({ t: b.t, o: op, c, h: Math.max(b.h, op, c), l: Math.min(b.l, op, c), v: b.v }); }); return o; };
   function tfs() { const el = host.querySelector(".pc-tfs"); el.innerHTML = (opt.tfs || []).map(t => `<button type="button" data-tf="${t}" aria-pressed="${t === tf}">${t}</button>`).join(""); }
@@ -92,8 +92,10 @@ window.ProChart = function (host, opt) {
   function layout() { const panes = S.inds.filter(x => IND[x.id] && IND[x.id][1] === "pane"); const axisW = opt.compact ? 58 : 72, tAx = 22, ph = panes.length ? Math.min(.22, .6 / panes.length) : 0, mainH = (H - tAx) * (1 - ph * panes.length);
     const out = { axisW, plotW: W - axisW, main: { y: 0, h: mainH }, panes: panes.map((x, i) => ({ ind: x, y: mainH + i * (H - tAx) * ph, h: (H - tAx) * ph })), tY: H - tAx }; return out; }
   function vis() { const n = Math.min(view.n, B.length), end = Math.max(n, B.length - view.off); return { s: Math.max(0, end - n), e: end, n }; }
-  const xOf = (i, V) => (i - V.s + .5) * (L.plotW / V.n);
-  const iOf = (x, V) => Math.floor(x / (L.plotW / V.n)) + V.s;
+  const slot = V => L.plotW / (V.n + (view.off === 0 ? view.pad : 0));   /* room on the right so the forming candle is easy to see */
+  const xOf = (i, V) => (i - V.s + .5) * slot(V);
+  const iOf = (x, V) => Math.floor(x / slot(V)) + V.s;
+  const TFS_ = { "1m": 60, "5m": 300, "15m": 900, "30m": 1800, "1h": 3600, "2h": 7200, "4h": 14400, "6h": 21600, "1d": 86400 };
   function yScale(lo, hi, y, h, log) { const pad = (hi - lo) * .08 || 1, a = lo - pad, b = hi + pad; if (log && a > 0) { const la = Math.log(a), lb = Math.log(b); return { f: v => y + h - (Math.log(v) - la) / (lb - la) * h, inv: py => Math.exp(la + (y + h - py) / h * (lb - la)) }; } return { f: v => y + h - (v - a) / (b - a) * h, inv: py => a + (y + h - py) / h * (b - a) }; }
   const fmtP = v => !isFinite(v) ? "—" : Math.abs(v) >= 1000 ? v.toLocaleString("en-US", { maximumFractionDigits: 2 }) : Math.abs(v) >= 1 ? v.toFixed(3) : v.toPrecision(4);
   const fmtT = t => { const d = new Date(t * 1000); return /d/.test(tf) ? (d.getMonth() + 1) + "/" + d.getDate() : String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0"); };
@@ -104,7 +106,7 @@ window.ProChart = function (host, opt) {
     if (B.length < 2) { g.fillStyle = T.dim; g.font = "600 14px Rajdhani, sans-serif"; g.textAlign = "center"; g.fillText("Loading candles…", W / 2, H / 2); return; }
     const V = vis(), D = S.type === "heikin" ? ha(B) : B, sl = D.slice(V.s, V.e); let lo = Math.min(...sl.map(b => b.l)), hi = Math.max(...sl.map(b => b.h));
     S.inds.forEach((x, k) => { if (IND[x.id] && IND[x.id][1] === "over") (CALC.get(k) || []).forEach(sr => { for (let i = V.s; i < V.e; i++) { const v = sr.v[i]; if (isFinite(v)) { if (v < lo) lo = v; if (v > hi) hi = v; } } }); });
-    const Y = yScale(lo, hi, L.main.y + 6, L.main.h - 12, S.log), bw = L.plotW / V.n; L.Y = Y; L.V = V;
+    const Y = yScale(lo, hi, L.main.y + 6, L.main.h - 12, S.log), bw = slot(V); L.Y = Y; L.V = V;
     /* grid + axes */
     g.font = "500 11px 'Share Tech Mono', monospace"; g.textBaseline = "middle";
     const ticks = 6; for (let j = 0; j <= ticks; j++) { const py = L.main.y + 6 + (L.main.h - 12) * j / ticks, v = Y.inv(py); if (S.grid) { g.strokeStyle = T.grid; g.lineWidth = 1; g.beginPath(); g.moveTo(0, py); g.lineTo(L.plotW, py); g.stroke(); } g.fillStyle = T.dim; g.textAlign = "left"; g.fillText(fmtP(v), L.plotW + 6, py); }
@@ -128,7 +130,9 @@ window.ProChart = function (host, opt) {
     drawsOf().concat(drawing ? [drawing] : []).forEach((d, k) => drawShape(d, V, Y, k === selD));
     g.restore();
     /* last price line */
-    const last = B[B.length - 1].c; if (S.pline) { const py = Y.f(last), up = last >= B[B.length - 1].o; g.setLineDash([4, 4]); g.strokeStyle = (up ? S.up : S.dn) + "aa"; g.beginPath(); g.moveTo(0, py); g.lineTo(L.plotW, py); g.stroke(); g.setLineDash([]); g.fillStyle = up ? S.up : S.dn; g.fillRect(L.plotW, py - 9, L.axisW, 18); g.fillStyle = "#04121f"; g.textAlign = "left"; g.font = "700 11px 'Share Tech Mono', monospace"; g.fillText(fmtP(last), L.plotW + 5, py); }
+    const last = B[B.length - 1].c; if (S.pline) { const py = Y.f(last), up = last >= B[B.length - 1].o; g.setLineDash([4, 4]); g.strokeStyle = (up ? S.up : S.dn) + "aa"; g.beginPath(); g.moveTo(0, py); g.lineTo(L.plotW, py); g.stroke(); g.setLineDash([]); g.fillStyle = up ? S.up : S.dn; g.fillRect(L.plotW, py - 9, L.axisW, 18); g.fillStyle = "#04121f"; g.textAlign = "left"; g.font = "700 11px 'Share Tech Mono', monospace"; g.fillText(fmtP(last), L.plotW + 5, py);
+      const sec = TFS_[tf]; if (sec && view.off === 0) { const left = Math.max(0, B[B.length - 1].t + sec - Date.now() / 1000), h2 = Math.floor(left / 3600), m2 = Math.floor(left % 3600 / 60), s2 = Math.floor(left % 60), cd = (h2 ? h2 + ":" + String(m2).padStart(2, "0") : m2) + ":" + String(s2).padStart(2, "0");
+        g.fillStyle = (up ? S.up : S.dn) + "cc"; g.fillRect(L.plotW, py + 9, L.axisW, 16); g.fillStyle = "#04121f"; g.font = "600 10px 'Share Tech Mono', monospace"; g.fillText(cd, L.plotW + 5, py + 17); } }
     /* panes */
     L.panes.forEach((pn, pi) => { const I = IND[pn.ind.id], k = S.inds.indexOf(pn.ind), sr = CALC.get(k) || []; g.strokeStyle = "rgba(127,208,255,.25)"; g.beginPath(); g.moveTo(0, pn.y); g.lineTo(W, pn.y); g.stroke();
       let plo = Infinity, phi = -Infinity; if (I[5]) { plo = I[5][0]; phi = I[5][1]; } else sr.forEach(s => { for (let i = V.s; i < V.e; i++) { const v = s.v[i]; if (isFinite(v)) { if (v < plo) plo = v; if (v > phi) phi = v; } } }); (I[4] || []).forEach(l => { plo = Math.min(plo, l); phi = Math.max(phi, l); });
@@ -144,11 +148,11 @@ window.ProChart = function (host, opt) {
     legend(V);
   }
   const paramStr = x => { const I = IND[x.id], p = Object.assign({}, I[2], x.p); return Object.keys(p).filter(k => k !== "col").map(k => p[k]).join(","); };
-  function line(sr, V, Y) { g.strokeStyle = sr.col || T.acc; g.lineWidth = sr.w || 1.6; if (sr.dash) g.setLineDash([5, 4]); const bw = L.plotW / V.n;
+  function line(sr, V, Y) { g.strokeStyle = sr.col || T.acc; g.lineWidth = sr.w || 1.6; if (sr.dash) g.setLineDash([5, 4]); const bw = slot(V);
     if (sr.type === "dots") { g.fillStyle = sr.col; for (let i = V.s; i < V.e; i++) { const v = sr.v[i]; if (isFinite(v)) { g.beginPath(); g.arc(xOf(i, V), Y.f(v), Math.max(1.2, Math.min(2.5, bw * .15)), 0, 7); g.fill(); } } return; }
     let st = false, pd = null; g.beginPath(); for (let i = V.s; i < V.e; i++) { const v = sr.v[i]; if (!isFinite(v)) { st = false; continue; } const d = sr.dirs ? sr.dirs[i] : null;
       if (sr.dirs && pd != null && d !== pd) { g.stroke(); g.beginPath(); st = false; } if (sr.dirs) g.strokeStyle = d > 0 ? S.up : S.dn; pd = d; const px = xOf(i, V), py = Y.f(v); st ? g.lineTo(px, py) : (g.moveTo(px, py), st = true); } g.stroke(); g.setLineDash([]); }
-  function hist(sr, V, Y, pn) { const bw = L.plotW / V.n, z = Y.f(Math.max(Y.inv(pn.y + pn.h - 4), Math.min(0, Y.inv(pn.y + 14)))) ; for (let i = V.s; i < V.e; i++) { const v = sr.v[i]; if (!isFinite(v)) continue; const b = B[i];
+  function hist(sr, V, Y, pn) { const bw = slot(V), z = Y.f(Math.max(Y.inv(pn.y + pn.h - 4), Math.min(0, Y.inv(pn.y + 14)))) ; for (let i = V.s; i < V.e; i++) { const v = sr.v[i]; if (!isFinite(v)) continue; const b = B[i];
       const col = sr.colorBy === "candle" ? (b.c >= b.o ? S.up : S.dn) : sr.colorBy === "rise" ? (i && v >= sr.v[i - 1] ? S.up : S.dn) : (v >= 0 ? S.up : S.dn); g.fillStyle = col + (sr.colorBy === "candle" ? "88" : "cc"); const base = sr.colorBy === "candle" ? pn.y + pn.h - 2 : Y.f(0), py = Y.f(v); g.fillRect(xOf(i, V) - bw * .35, Math.min(base, py), Math.max(1, bw * .7), Math.abs(base - py)); } }
   function drawShape(d, V, Y, sel) { const P = q => [xOf(q.i, V), Y.f(q.p)], col = d.col || "#ffd166"; g.strokeStyle = col; g.fillStyle = col; g.lineWidth = sel ? 2.5 : 1.5;
     if (d.t === "hline") { const y = Y.f(d.a.p); g.beginPath(); g.moveTo(0, y); g.lineTo(L.plotW, y); g.stroke(); g.font = "600 11px 'Share Tech Mono'"; g.textAlign = "right"; g.fillText(fmtP(d.a.p), L.plotW - 4, y - 6); return; }
@@ -178,15 +182,21 @@ window.ProChart = function (host, opt) {
   cv.addEventListener("pointermove", e => { if (!L) return; const p = posOf(e); if (pts.has(e.pointerId)) pts.set(e.pointerId, p);
     if (pinch && pts.size === 2) { const [a, b] = [...pts.values()], d = Math.abs(a.x - b.x) || 1; view.n = Math.max(15, Math.min(B.length, Math.round(pinch.n * pinch.d / d))); draw(); return; }
     mouse = Object.assign(mouse || {}, p); if (drawing) { drawing.b = ptOf(p); draw(); return; }
-    if (drag) { const bw = L.plotW / L.V.n; view.off = Math.max(0, Math.min(B.length - 15, Math.round(drag.off + (p.x - drag.x) / bw))); } draw(); });
+    if (drag) { const bw = slot(L.V); view.off = Math.max(0, Math.min(B.length - 15, Math.round(drag.off + (p.x - drag.x) / bw))); syncNav(); } draw(); });
   const up = e => { pts.delete(e.pointerId); if (pts.size < 2) pinch = null; if (drawing) { if (drawing.a.i !== drawing.b.i || Math.abs(drawing.a.p - drawing.b.p) > 0) { drawsOf().push(drawing); persist(); } drawing = null; setTool("cross"); draw(); } drag = null; };
   cv.addEventListener("pointerup", up); cv.addEventListener("pointercancel", up); cv.addEventListener("pointerleave", () => { mouse = null; draw(); });
-  cv.addEventListener("wheel", e => { e.preventDefault(); const f = e.deltaY > 0 ? 1.12 : .89; view.n = Math.max(15, Math.min(Math.max(15, B.length), Math.round(view.n * f))); draw(); }, { passive: false });
+  cv.addEventListener("wheel", e => { e.preventDefault(); if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) { nav(e.deltaX > 0 ? "fwd" : "back", Math.max(1, Math.round(Math.abs(e.deltaX) / 20))); return; } zoom(e.deltaY > 0 ? 1.12 : .89); }, { passive: false });
+  function zoom(f) { view.n = Math.max(15, Math.min(Math.max(15, B.length), Math.round(view.n * f))); view.off = Math.min(view.off, Math.max(0, B.length - view.n)); syncNav(); draw(); }
+  function nav(a, k) { const step = k || Math.max(1, Math.round(view.n * .15)); if (a === "in") return zoom(.8); if (a === "out") return zoom(1.25);
+    if (a === "back") view.off = Math.min(Math.max(0, B.length - 15), view.off + step); else if (a === "fwd") view.off = Math.max(0, view.off - step); else if (a === "live") view.off = 0; syncNav(); draw(); }
+  function syncNav() { const lv = host.querySelector(".pc-live"); if (lv) lv.hidden = view.off === 0; }
+  host.addEventListener("click", e => { const b = e.target.closest("[data-nav]"); if (b && host.contains(b)) { e.stopPropagation(); nav(b.dataset.nav); } }, true);
+  const tickT = setInterval(() => { if (!host.isConnected) return; if (view.off === 0 && TFS_[tf]) draw(); }, 1000);
   function hitDraw(p) { const V = L.V, Y = L.Y, ds = drawsOf(); for (let k = ds.length - 1; k >= 0; k--) { const d = ds[k], a = [xOf(d.a.i, V), Y.f(d.a.p)], b = d.b ? [xOf(d.b.i, V), Y.f(d.b.p)] : null;
       if (d.t === "hline" && Math.abs(p.y - a[1]) < 6) return k; if (d.t === "vline" && Math.abs(p.x - a[0]) < 6) return k; if (d.t === "note" && Math.hypot(p.x - a[0], p.y - a[1]) < 12) return k;
       if (b) { if (d.t === "rect" || d.t === "fib" || d.t === "measure") { if (p.x >= Math.min(a[0], b[0]) - 4 && p.x <= Math.max(a[0], b[0]) + 4 && p.y >= Math.min(a[1], b[1]) - 4 && p.y <= Math.max(a[1], b[1]) + 4) return k; }
         else { const dx = b[0] - a[0], dy = b[1] - a[1], t2 = Math.max(0, Math.min(1, ((p.x - a[0]) * dx + (p.y - a[1]) * dy) / (dx * dx + dy * dy || 1))); if (Math.hypot(p.x - (a[0] + t2 * dx), p.y - (a[1] + t2 * dy)) < 6) return k; } } } return -1; }
-  const keyH = e => { if (!host.isConnected) return; if ((e.key === "Delete" || e.key === "Backspace") && selD >= 0 && !/input|select|textarea/i.test(e.target.tagName)) { drawsOf().splice(selD, 1); selD = -1; persist(); draw(); } if (e.key === "Escape") { if (!pop.hidden) pop.hidden = true; else setTool("cross"); } };
+  const keyH = e => { if (!host.isConnected || !host.getClientRects().length) return; if (!/input|select|textarea/i.test(e.target.tagName || "") && !e.target.isContentEditable) { const m = { ArrowLeft: "back", ArrowRight: "fwd", "+": "in", "=": "in", "-": "out", "_": "out", End: "live" }[e.key]; if (m && !e.ctrlKey && !e.metaKey) { e.preventDefault(); nav(m, e.key.startsWith("Arrow") ? (e.shiftKey ? 10 : 2) : 0); return; } } if ((e.key === "Delete" || e.key === "Backspace") && selD >= 0 && !/input|select|textarea/i.test(e.target.tagName)) { drawsOf().splice(selD, 1); selD = -1; persist(); draw(); } if (e.key === "Escape") { if (!pop.hidden) pop.hidden = true; else setTool("cross"); } };
   document.addEventListener("keydown", keyH);
   function setTool(t) { tool = t; host.querySelectorAll("[data-tool]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.tool === t))); cv.style.cursor = t === "cross" ? "crosshair" : "copy"; }
   setTool("cross");
@@ -210,7 +220,7 @@ window.ProChart = function (host, opt) {
   function syncTop() { const tl = host.querySelector(".pc-tl"); if (tl) tl.textContent = (TYPES.find(t => t[0] === S.type) || [0, ""])[1]; const s = host.querySelector(".pc-sym"); if (s) s.textContent = sym; tfs(); }
   host.addEventListener("click", e => { const b = e.target.closest("button"); if (!b || !host.contains(b)) return; const D = b.dataset;
     if (D.tool) setTool(D.tool); else if (D.tf) { tf = D.tf; tfs(); opt.onTf && opt.onTf(D.tf); }
-    else if (D.pc === "ind") indList(); else if (D.pc === "set") settings(); else if (D.pc === "type") typePick(); else if (D.pc === "fit") { view.n = B.length; view.off = 0; draw(); }
+    else if (D.pc === "ind") indList(); else if (D.pc === "set") settings(); else if (D.pc === "type") typePick(); else if (D.pc === "fit") { view.n = B.length; view.off = 0; syncNav(); draw(); }
     else if (D.pc === "shot") { if (drawsOf().length) { S.draw[sym] = []; persist(); draw(); } } else if (D.pc === "close") opt.onClose && opt.onClose();
     else if (D.iadd) { const I = IND[D.iadd]; S.inds.push({ id: D.iadd, p: { col: I[2].col } }); persist(); compute(); draw(); pop.hidden = true; }
     else if (D.ie != null) indEdit(+D.ie); else if (D.ix != null) { S.inds.splice(+D.ix, 1); persist(); compute(); pop.hidden = true; draw(); }
@@ -220,9 +230,11 @@ window.ProChart = function (host, opt) {
     else if (D.pclose != null) pop.hidden = true; });
   syncTop();
   return {
-    setBars(bars, s, t) { if (s != null && s !== sym) { sym = s; selD = -1; } if (t) tf = t; B = (bars || []).filter(b => isFinite(b.c)); RB = S.type === "heikin" ? B : B; compute(); syncTop(); draw(); },
+    setBars(bars, s, t) { const nb = (bars || []).filter(b => isFinite(b.c)), same = (s == null || s === sym) && (!t || t === tf);
+      if (same && B.length && view.off > 0) { const lastT = B[B.length - 1].t, added = nb.filter(b => b.t > lastT).length; view.off += added; }   /* scrolled back: stay put while new candles arrive */
+      if (!same) { view.off = 0; selD = -1; } if (s != null) sym = s; if (t) tf = t; B = nb; RB = B; compute(); syncTop(); syncNav(); draw(); },
     redraw: draw, resize, get settings() { return S; },
-    destroy() { ro.disconnect(); document.removeEventListener("keydown", keyH); host.innerHTML = ""; host.classList.remove("pc"); }
+    destroy() { clearInterval(tickT); ro.disconnect(); document.removeEventListener("keydown", keyH); host.innerHTML = ""; host.classList.remove("pc"); }
   };
 };
 window.ProChart.INDICATORS = Object.keys(IND).length;

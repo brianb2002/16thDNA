@@ -35,10 +35,13 @@ t = rep(t, " if(EDIT.on||!id)return;\n if(SET.popups)", " if(EDIT.on||!id)return
 
 # sharper screens: surface canvases render at up to 1.6x; drawing code and tap math still see the original size
 t = rep(t, "function mk(w,h){const c=document.createElement('canvas');c.width=w;c.height=h;return c}",
-  "function mk(w,h){const c=document.createElement('canvas'),S=(w>=256&&h>=200)?Math.min(window.HX_RES||1.6,4096/w,4096/h):1;c.width=Math.round(w*S);c.height=Math.round(h*S);"
+  "function mk(w,h){const c=document.createElement('canvas'),S=(w>=256&&h>=200)?Math.min(window.HX_RES||2,4096/w,4096/h):1;c.width=Math.round(w*S);c.height=Math.round(h*S);"
   "if(S>1.01){Object.defineProperty(c,'width',{get:()=>w,set:()=>{},configurable:true});Object.defineProperty(c,'height',{get:()=>h,set:()=>{},configurable:true});"
   "const gc=HTMLCanvasElement.prototype.getContext;c.getContext=function(k,o){const g=gc.call(c,k,o);if(g&&k==='2d'&&!g.__hxs){g.scale(S,S);g.__hxs=1}return g}}return c}")
 # crisper text: only the brightest glows bloom
+# crisp at an angle: max anisotropic filtering on every screen texture, and keep the room at full resolution
+t = rep(t, "t.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());", "t.anisotropy=renderer.capabilities.getMaxAnisotropy();")
+t = rep(t, "if(m>22&&QS.lvl>0){QS.lvl--;", "if(m>40&&QS.lvl>2){QS.lvl--;")
 t = rep(t, "new THREE.UnrealBloomPass(new THREE.Vector2(256,256),.95,.45,.06)", "new THREE.UnrealBloomPass(new THREE.Vector2(256,256),.6,.4,.55)")
 # shell objects the 3D Dev mode needs
 t = rep(t, "function hit(x,y){", "window.__hxHit=(x,y)=>hit(x,y);function hit(x,y){")

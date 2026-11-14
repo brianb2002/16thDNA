@@ -46,6 +46,26 @@ DONE in v2:
   - every key, panel, simulation and chart tool
   - no page errors
 
+DONE in v3 (latest):
+- **Live, accurate charts.**
+  - Candles are pulled every 2.5 s (`liveTick` in desk.js), so the forming candle updates live. A new candle opens exactly on the timeframe boundary. 300 candles of history.
+  - Pro Chart:
+    - Auto-follows the live candle, with empty space on its right.
+    - If you scroll back, it stays put and shows a "⇥ Latest" button.
+    - − and + zoom buttons and ◀ ▶ scroll buttons. Keys: ← →, + −, End.
+    - A countdown to candle close under the price label.
+  - The big wall chart shows the countdown too. Tap it for the full chart.
+- **Duplicate buttons removed.**
+  - Desk pad = LESSONS, RESEARCH, FULL CHART, PLATFORMS.
+  - Learn tablet → COACH PLAN (entry / stop / target / risk, info only).
+  - Connect pad = CONNECT AI and BROKER only.
+  - Removed: the Account DETAILS key, the Orders ALL ORDERS key, and DEV in the mode bar (the floating DEV button stays).
+- **Sharper.**
+  - Surface canvases at 2× (HX_RES).
+  - Max anisotropic filtering on screen textures.
+  - The quality auto-drop only goes as low as level 2.
+  - Bull and bear re-rendered on Higgsfield at high quality 2k (`dna/assets/*-src-hq.png` → 1024 px jpg).
+
 STILL OPEN / ideas:
 - The three platform layouts that are usually stock or forex (thinkorswim, MetaTrader, Webull) run on the crypto demo market. Add stock symbols if a stock data connector is added.
 - Not yet verified on the real connector: the preview and create result fields.

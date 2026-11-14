@@ -164,3 +164,8 @@
 [data-live=acct]{display:flex;flex-wrap:wrap;gap:4px 12px}.tos-ac[data-live=acct]{flex-direction:column}.nt-ct [data-live=acct]{justify-content:flex-end}
 .pnl>*{flex-shrink:0}.pnl>.book{flex-shrink:1}
 @media (max-width:900px){.cb-g .chartp,.tv-g .chartp{min-height:360px}.cb-g .chartp .sim-chart{min-height:360px}.cb-g,.tv-g,.wb-g,.mt-g,.tos-g,.nt-g{min-height:0}.nt-dom{max-height:420px}.cb-g .book{max-height:260px;overflow:auto}}
+
+.pc-nav{position:absolute;right:84px;bottom:30px;display:flex;gap:4px;z-index:2}
+.pc-nav button{min-width:34px;height:34px;padding:0 9px;border-radius:9px;border:1px solid rgba(127,208,255,.45);background:rgba(8,26,60,.85);color:#eaf6ff;font:700 16px 'Share Tech Mono',monospace;cursor:pointer;box-shadow:0 3px 0 rgba(0,0,0,.35)}
+.pc-nav button:hover{background:rgba(59,140,255,.45)}.pc-nav button:active{transform:translateY(2px);box-shadow:none}.pc-nav .pc-live{font-size:12px;background:#2b6fd6}
+.plat-mt .pc-nav button{background:#f0f0f0;color:#000;border-color:#888;border-radius:2px}

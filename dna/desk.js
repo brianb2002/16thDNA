@@ -40,7 +40,7 @@ const call = async (tool, input) => { const u = U(); if (!u) throw new Error("En
 const num = v => v == null ? NaN : +(typeof v === "object" ? (v.value != null ? v.value : NaN) : v);
 
 async function loadBars() {
-  const r = await call("coinbase_products_candles", { product_id: D.sym + "-USD", granularity: D.tf, limit: 90 });
+  const r = await call("coinbase_products_candles", { product_id: D.sym + "-USD", granularity: D.tf, limit: 300 });
   const cs = (r && (r.candles || r)) || [];
   D.bars = cs.map(c => ({ t: +c.start, o: +c.open, h: +c.high, l: +c.low, c: +c.close, v: +c.volume })).filter(b => isFinite(b.c)).sort((a, b) => a.t - b.t);
 }
@@ -161,16 +161,18 @@ function chip(g, x, y, w, h, label, col, fill) { g.save(); rr(g, x, y, w, h, h /
 
 /* ---------------- surfaces ---------------- */
 function drawChart(g, x, y, w, h) {
-  const b = D.bars.slice(-64); if (b.length < 2) { T(g, D.err ? "No prices: " + D.err : "Loading prices…", x + w / 2, y + h / 2, h * .08, C.dim, "center", 600); return; }
+  const PADB = 4, b = D.bars.slice(-60); if (b.length < 2) { T(g, D.err ? "No prices: " + D.err : "Loading prices…", x + w / 2, y + h / 2, h * .08, C.dim, "center", 600); return; }
   const volH = D.ind.VOL ? h * .16 : 0, subH = (D.ind.RSI || D.ind.MACD) ? h * .22 : 0, ch = h - volH - subH;
-  const lo = Math.min(...b.map(v => v.l)), hi = Math.max(...b.map(v => v.h)), Y = v => y + ch - (v - lo) / (hi - lo || 1) * ch, bw = w / b.length;
+  const lo = Math.min(...b.map(v => v.l)), hi = Math.max(...b.map(v => v.h)), Y = v => y + ch - (v - lo) / (hi - lo || 1) * ch, bw = w / (b.length + PADB);
   g.strokeStyle = "rgba(127,227,255,.12)"; g.lineWidth = 1; for (let i = 1; i < 5; i++) { g.beginPath(); g.moveTo(x, y + ch * i / 5); g.lineTo(x + w, y + ch * i / 5); g.stroke(); }
   b.forEach((v, i) => { const up = v.c >= v.o, cx = x + i * bw + bw / 2, col = up ? C.gr : C.rd; g.strokeStyle = col; g.fillStyle = col; g.shadowColor = col; g.shadowBlur = 6; g.lineWidth = Math.max(1.2, bw * .12);
     g.beginPath(); g.moveTo(cx, Y(v.h)); g.lineTo(cx, Y(v.l)); g.stroke(); g.fillRect(cx - bw * .32, Y(Math.max(v.o, v.c)), bw * .64, Math.max(1.5, Math.abs(Y(v.o) - Y(v.c)))); }); g.shadowBlur = 0;
   const all = D.bars.map(v => v.c), off = all.length - b.length;
   if (D.ind.EMA && D.calc) [[D.calc.e21, C.am], [D.calc.e55, C.pu]].forEach(([e, col]) => { g.strokeStyle = col; g.lineWidth = 2.5; g.shadowColor = col; g.shadowBlur = 8; g.beginPath(); b.forEach((_, i) => { const px = x + i * bw + bw / 2, py = Y(e[i + off]); i ? g.lineTo(px, py) : g.moveTo(px, py); }); g.stroke(); g.shadowBlur = 0; });
   if (CO.plan && D.view === "chart") [[CO.plan.target, C.gr, "TARGET"], [CO.plan.stop, C.rd, "STOP"]].forEach(([v, col, n]) => { if (v < lo || v > hi) return; g.setLineDash([8, 6]); g.strokeStyle = rgba(col, .8); g.lineWidth = 1.5; g.beginPath(); g.moveTo(x, Y(v)); g.lineTo(x + w, Y(v)); g.stroke(); g.setLineDash([]); T(g, n, x + 6, Y(v) - 5, Math.max(10, h * .045), col, "left", 700, FD); });
-  const last = b[b.length - 1].c; g.setLineDash([10, 8]); g.strokeStyle = C.cy; g.lineWidth = 2; g.beginPath(); g.moveTo(x, Y(last)); g.lineTo(x + w, Y(last)); g.stroke(); g.setLineDash([]);
+  const lb = b[b.length - 1], last = lb.c; g.setLineDash([10, 8]); g.strokeStyle = C.cy; g.lineWidth = 2; g.beginPath(); g.moveTo(x, Y(last)); g.lineTo(x + w, Y(last)); g.stroke(); g.setLineDash([]);
+  if (D.tfSec) { const left = Math.max(0, lb.t + D.tfSec() - Date.now() / 1000), mm = Math.floor(left / 60), ss = Math.floor(left % 60), lab = (mm >= 60 ? Math.floor(mm / 60) + "h " + (mm % 60) + "m" : mm + ":" + String(ss).padStart(2, "0"));
+    const px = x + (b.length - 1) * bw + bw / 2; g.fillStyle = "rgba(127,227,255,.12)"; g.fillRect(px - bw / 2, y, bw, ch); T(g, "candle closes in " + lab + "  ·  tap chart for full screen", x + w - 4, y + h - 4, Math.max(10, h * .04), C.dim, "right", 700, FM); }
   let yy = y + ch;
   if (volH) { const mv = Math.max(...b.map(v => v.v || 0)) || 1; b.forEach((v, i) => { g.fillStyle = rgba(v.c >= v.o ? C.gr : C.rd, .5); const hh = (v.v || 0) / mv * volH * .9; g.fillRect(x + i * bw + bw * .2, yy + volH - hh, bw * .6, hh); }); yy += volH; }
   if (subH && D.calc) { g.strokeStyle = "rgba(127,227,255,.2)"; g.strokeRect(x, yy + 4, w, subH - 6);
@@ -185,7 +187,7 @@ function wallChart(g, W, H, sf) {
   T(g, fmt(last), W * .56, 48 * k, 32 * k, C.wh, "center", 800, FM); T(g, (ch >= 0 ? "▲ " : "▼ ") + pctS(ch).replace("+", ""), W * .74, 48 * k, 24 * k, ch >= 0 ? C.gr : C.rd, "center", 800, FM);
   chip(g, W - 176 * k, 22 * k, 150 * k, 34 * k, live() ? "● LIVE" : "● DEMO", live() ? C.gr : C.am);
   const bx = 26 * k, by = 70 * k, bw = W - 52 * k, bh = 252 * k;
-  if (D.view === "chart") { drawChart(g, bx, by, bw, bh); sf.btns.push({ x: bx, y: by, w: bw, h: bh, act: () => MODES.chart(), kid: CUR + ":plot", label: "Chart (opens full screen)", row: true }); T(g, "⤢ TAP FOR FULL CHART", bx + 8 * k, by + bh - 8 * k, 12 * k, C.dim, "left", 700, FD); } else VIEWS[D.view](g, bx, by, bw, bh, k, sf);
+  if (D.view === "chart") { drawChart(g, bx, by, bw, bh); sf.btns.push({ x: bx, y: by, w: bw, h: bh, act: () => MODES.chart(), kid: CUR + ":plot", label: "Chart (opens full screen)", row: true }); } else VIEWS[D.view](g, bx, by, bw, bh, k, sf);
   const tw = bw / TABS.length; TABS.forEach(([id, lab, ic], i) => key(g, sf, bx + i * tw + 5 * k, 332 * k, tw - 10 * k, 60 * k, { label: lab, icon: ic, on: D.view === id, act: () => { D.view = id; if (id === "book") loadBook().then(repaint); repaint(); } }));
 }
 const VIEWS = {
@@ -220,7 +222,7 @@ const WALL = {
   movers: (g, W, H, sf) => { const k = H / 400, b = D.bal || {}; head(g, W, H, "ACCOUNT", b.live ? "LIVE" : "PRACTICE", k, b.live ? C.gr : C.am);
     T(g, "$" + fmt(b.usd || 0, 2), 24 * k, 136 * k, 56 * k, C.wh, "left", 900, FM); T(g, b.live ? "USD + USDC AVAILABLE" : "PRACTICE CASH", 26 * k, 168 * k, 17 * k, C.dim, "left", 700, FD);
     [[D.sym, fmt(b.coin || 0, 8)], ["TRADES", String(D.journal.length)], ["BADGES", badges().filter(x => x[1]).length + " / 8"], ["DAILY STOP", "$" + D.dailyStop.toFixed(2)]].forEach((r, i) => { const y = (214 + i * 36) * k; T(g, r[0], 26 * k, y, 18 * k, C.dim, "left", 700, FD); T(g, r[1], W - 24 * k, y, 21 * k, C.wh, "right", 700, FM); });
-    key(g, sf, 22 * k, 344 * k, W - 44 * k, 46 * k, { label: "DETAILS", icon: "user", spark: false, act: () => { D.view = "account"; repaint(); } }); },
+  },
   sectors: (g, W, H, sf) => { const k = H / 400; head(g, W, H, "STRATEGIES", STRATS.length ? STRATS.filter(s => s[1] === "SIGNAL").length + " SIGNAL" : "LOADING", k);
     STRATS.forEach((s, i) => { const y = (76 + i * 52) * k, col = s[1] === "SIGNAL" ? C.gr : s[1] === "WAIT" ? C.am : C.dim; fitT(g, s[0], 24 * k, y + 28 * k, 18 * k, W * .5, C.wh, "left", 800, FD); chip(g, W - 150 * k, y + 8 * k, 128 * k, 30 * k, s[1], col, s[1] === "SIGNAL");       sf.btns.push({ x: 14 * k, y, w: W - 28 * k, h: 50 * k, act: () => PANEL.strategy(i), kid: CUR + ":strat" + i, label: s[0], row: true }); }); }
 };
@@ -238,13 +240,12 @@ const PAD = {
     ["EMA", "RSI", "MACD", "VOL"].forEach((t, i) => key(g, sf, (22 + i * 182) * k, 308 * k, 166 * k, 72 * k, { label: t, col: C.am, on: D.ind[t], act: () => { D.ind[t] = !D.ind[t]; saveSt(); D.view = "chart"; repaint(); } }));
   },
   order: (g, W, H, sf) => { const k = H / 480, u = U(), ai = !!(u && u.aiReady && u.aiReady()), br = live(); head(g, W, H, "CONNECT", null, k);
-    key(g, sf, 22 * k, 80 * k, W - 44 * k, 104 * k, { kid: "ai", label: "CONNECT AI", sub: ai ? "● Claude built in · " + (u.lock ? "model locked" : "auto") : "○ not connected · tap to set up", icon: "link", col: C.bl, on: ai, act: () => PANEL.settings("ai") });
-    key(g, sf, 22 * k, 200 * k, W - 44 * k, 104 * k, { kid: "broker", label: "BROKER", sub: br ? "● Coinbase connector · live" : "○ practice · tap to connect Coinbase", icon: "bank", col: "#1fae7a", on: br, act: () => PANEL.settings("broker") });
-    key(g, sf, 22 * k, 330 * k, (W - 60 * k) / 2, 70 * k, { label: "DEV MODE", icon: "dev", act: () => MODES.dev() });
-    key(g, sf, 38 * k + (W - 60 * k) / 2, 330 * k, (W - 60 * k) / 2, 70 * k, { label: "EDIT DESK", icon: "pencil", act: () => MODES.editDesk() }); },
+    key(g, sf, 22 * k, 84 * k, W - 44 * k, 160 * k, { kid: "ai", iconTop: true, label: "CONNECT AI", sub: ai ? "● Claude built in · " + (u.lock ? "model locked" : "auto") : "○ not connected · tap to set up", icon: "link", col: C.bl, on: ai, act: () => PANEL.settings("ai") });
+    key(g, sf, 22 * k, 268 * k, W - 44 * k, 160 * k, { kid: "broker", iconTop: true, label: "BROKER", sub: br ? "● Coinbase connector · live" : "○ practice · tap to connect Coinbase", icon: "bank", col: "#1fae7a", on: br, act: () => PANEL.settings("broker") });
+  },
   ctrl: (g, W, H, sf) => { const k = H / 660; head(g, W, H, "DESK", null, k);
-    [["COACH", "cap", () => { D.view = "coach"; repaint(); }], ["LESSONS", "book", () => PANEL.lessons()], ["RESEARCH", "globe", () => PANEL.research()], ["JOURNAL", "journal", () => PANEL.journal()], ["PROGRESS", "progress", () => PANEL.progress()], ["PLATFORMS", "play", () => MODES.sim()]]
-      .forEach(([t, ic, fn], i) => key(g, sf, (22 + (i % 2) * 372) * k, (88 + Math.floor(i / 2) * 182) * k, 352 * k, 160 * k, { label: t, icon: ic, iconTop: true, col: i === 5 ? C.gold : C.bl, act: fn })); }
+    [["LESSONS", "book", () => PANEL.lessons()], ["RESEARCH", "globe", () => PANEL.research()], ["FULL CHART", "chart", () => MODES.chart()], ["PLATFORMS", "play", () => MODES.sim()]]
+      .forEach(([t, ic, fn], i) => key(g, sf, (22 + (i % 2) * 372) * k, (96 + Math.floor(i / 2) * 272) * k, 352 * k, 248 * k, { label: t, icon: ic, iconTop: true, col: i === 3 ? C.gold : C.bl, act: fn })); }
 };
 function ticket(g, W, H, sf) {
   const k = H / 400, p = CO.plan, last = D.bars.length ? D.bars[D.bars.length - 1].c : null; head(g, W, H, "ORDER TICKET", live() ? "LIVE ORDER" : "PRACTICE", k, live() ? C.gr : C.am);
@@ -291,12 +292,13 @@ window.DNA_PAINT = function (kind, id, g, W, H, sf) {
     else if (kind === "row" && ROW[id]) { const o = Object.assign({ kid: "main" }, ROW[id]()); key(g, sf, W * .04, H * .08, W * .92, H * .84, o); }
     else if (kind === "pad" && PAD[id]) PAD[id](g, W, H, sf);
     else if (kind === "ticket") ticket(g, W, H, sf);
-    else if (kind === "watch") { const k = H / 340; head(g, W, H, "LEARN", null, k); [["COACH", "cap", () => { D.view = "coach"; repaint(); }], ["LESSONS", "book", () => PANEL.lessons()], ["RESEARCH", "globe", () => PANEL.research()], ["JOURNAL", "journal", () => PANEL.journal()]]
-      .forEach(([t, ic, fn], i) => key(g, sf, (20 + (i % 2) * 240) * k, (80 + Math.floor(i / 2) * 124) * k, 224 * k, 104 * k, { label: t, icon: ic, iconTop: true, act: fn })); }
+    else if (kind === "watch") { const k = H / 340, p = CO.plan; head(g, W, H, "COACH PLAN", D.sym, k, C.cy);
+      if (!p) T(g, "Loading…", W / 2, 170 * k, 24 * k, C.dim, "center", 600);
+      else [["ENTRY", fmt(p.entry), C.cy2], ["STOP", fmt(p.stop), C.rd], ["TARGET", fmt(p.target), C.gr], ["RISK ON $" + D.size.toFixed(0), "$" + p.risk.toFixed(2), C.am]].forEach((r, i) => { const x = (22 + (i % 2) * 240) * k, y = (110 + Math.floor(i / 2) * 104) * k; T(g, r[0], x, y, 18 * k, C.dim, "left", 700, FD); T(g, r[1], x, y + 40 * k, 34 * k, r[2], "left", 800, FM); }); }
     else if (kind === "signals") { const k = H / 340, j = D.journal.slice(-3).reverse(); head(g, W, H, "ORDERS", live() ? "LIVE" : "PRACTICE", k, live() ? C.gr : C.am);
       if (!j.length) T(g, "No orders yet", W / 2, 150 * k, 22 * k, C.dim, "center", 600);
-      j.forEach((t, i) => { const y = (100 + i * 52) * k; T(g, (t.live ? "LIVE " : "PRACTICE ") + t.side, 22 * k, y, 18 * k, t.side === "BUY" ? C.gr : C.rd, "left", 800, FD); T(g, "$" + (+t.usd).toFixed(2) + " " + t.sym + " @ " + fmt(t.px), 22 * k, y + 24 * k, 18 * k, C.wh, "left", 600, FM); });
-      key(g, sf, 22 * k, 262 * k, W - 44 * k, 62 * k, { label: "ALL ORDERS", icon: "list", act: () => PANEL.journal() }); }
+      j.forEach((t, i) => { const y = (100 + i * 66) * k; T(g, (t.live ? "LIVE " : "PRACTICE ") + t.side, 22 * k, y, 18 * k, t.side === "BUY" ? C.gr : C.rd, "left", 800, FD); T(g, "$" + (+t.usd).toFixed(2) + " " + t.sym + " @ " + fmt(t.px), 22 * k, y + 24 * k, 18 * k, C.wh, "left", 600, FM); });
+    }
     else if (kind === "tile") { const s = WATCH[id % WATCH.length], p = D.prods[s] || {}; if (sf && sf.m) sf.m.userData.dnaSym = s;
       icon(g, s === D.sym ? "bolt" : "sym", 44, 52, 34, s === D.sym ? C.gold : C.cy); T(g, s, 78, 66, 44, C.wh, "left", 900, FD); T(g, fmt(p.p), 24, 146, 38, C.cy2, "left", 700, FM); T(g, pctS(p.ch), 24, 202, 32, (p.ch || 0) < 0 ? C.rd : C.gr, "left", 800, FM); }
     else if (kind === "station") { STN.has(id) || STN.set(id, STN.size); const i = STN.get(id) % 6, s = STRATS[i] || ["STRATEGY " + (i + 1), "LOADING", ""]; if (sf && sf.mesh) sf.mesh.userData.dnaStrat = i;
@@ -561,12 +563,23 @@ const SIM = window.DNA_SIM = {
 /* ---------------- boot ---------------- */
 function bar() {
   const b = document.createElement("div"); b.id = "dnaModes"; b.className = "dna"; b.setAttribute("role", "group"); b.setAttribute("aria-label", "Desk mode");
-  b.innerHTML = `<span class="dna-brand">16TH DNA</span>${[["dash", "DASHBOARD"], ["chart", "CHART"], ["full", "FULL SCREEN"], ["sim", "SIMULATION"]].map(([m, l]) => `<button type="button" data-mode="${m}" aria-pressed="${m === "dash"}">${l}</button>`).join("")}<button type="button" data-act="dev">DEV</button>`;
+  b.innerHTML = `<span class="dna-brand">16TH DNA</span>${[["dash", "DASHBOARD"], ["chart", "CHART"], ["full", "FULL SCREEN"], ["sim", "SIMULATION"]].map(([m, l]) => `<button type="button" data-mode="${m}" aria-pressed="${m === "dash"}">${l}</button>`).join("")}`;
   b.addEventListener("click", e => { const x = e.target.closest("button"); if (!x) return; if (x.dataset.mode) MODES[x.dataset.mode](); else MODES.dev(); });
   document.body.append(b);
   const ex = document.createElement("button"); ex.type = "button"; ex.id = "dnaExit"; ex.className = "dna"; ex.textContent = "⤢"; ex.setAttribute("aria-label", "Leave full screen"); ex.onclick = () => MODES.dash(); document.body.append(ex);
   MODES.set("dash");
 }
-function boot() { bar(); refresh(true); setInterval(() => refresh(), 12000); window.DNA_ON = true; }
+/* live current candle: pull the newest candles every few seconds and merge them in, so the forming candle
+   moves with the market and a new one opens exactly on the timeframe boundary */
+const TFSEC = { "1m": 60, "5m": 300, "15m": 900, "30m": 1800, "1h": 3600, "1d": 86400 };
+D.tfSec = () => TFSEC[D.tf] || 900;
+let ticking = false;
+async function liveTick() { if (ticking || D.busy || !D.bars.length) return; ticking = true; const s = D.sym, tf = D.tf;
+  try { const r = await call("coinbase_products_candles", { product_id: s + "-USD", granularity: tf, limit: 3 }); if (s !== D.sym || tf !== D.tf) return;
+    const cs = ((r && (r.candles || r)) || []).map(c => ({ t: +c.start, o: +c.open, h: +c.high, l: +c.low, c: +c.close, v: +c.volume })).filter(b => isFinite(b.c)).sort((a, b) => a.t - b.t);
+    let changed = false; cs.forEach(b => { const L = D.bars[D.bars.length - 1]; if (b.t === L.t) { if (b.c !== L.c || b.h !== L.h || b.l !== L.l || b.v !== L.v) { D.bars[D.bars.length - 1] = b; changed = true; } } else if (b.t > L.t) { D.bars.push(b); if (D.bars.length > 400) D.bars.shift(); changed = true; } else { const i = D.bars.findIndex(x => x.t === b.t); if (i >= 0) { D.bars[i] = b; changed = true; } } });
+    if (changed) { if (D.prods[s]) D.prods[s].p = D.bars[D.bars.length - 1].c; computeAll(); try { PAPER.check(); } catch (e) {} try { CHART.update(); } catch (e) {} } }
+  catch (e) {} finally { ticking = false; } }
+function boot() { bar(); refresh(true); setInterval(() => refresh(), 15000); setInterval(liveTick, 2500); setInterval(() => { try { if (SIM.el) SIM.update(); } catch (e) {} }, 3000); window.DNA_ON = true; }
 if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else setTimeout(boot, 0);
 })();
