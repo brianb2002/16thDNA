@@ -1,0 +1,64 @@
+<title>16th DNA Desk 360</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+/* One-screen 360 viewer: full-bleed panorama, glass control strip along the bottom. Single dark holo look on purpose. */
+:root{--bg:#02060f;--glass:rgba(6,22,56,.78);--edge:rgba(127,208,255,.55);--ink:#eaf6ff;--dim:#9cc4e6;--acc:#7fe3ff;--f-d:Orbitron,Rajdhani,system-ui,sans-serif;--f-b:Rajdhani,system-ui,sans-serif;color-scheme:dark}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-b);overflow:hidden}
+#view{position:fixed;inset:0;display:block;width:100%;height:100%;touch-action:none;cursor:grab}
+#view:active{cursor:grabbing}
+.bar{position:fixed;left:0;right:0;bottom:0;padding:10px max(16px,env(safe-area-inset-right,0px)) calc(12px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none}
+.top{position:fixed;left:0;right:0;top:0;padding:calc(12px + env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px));display:flex;justify-content:space-between;align-items:flex-start;gap:12px;pointer-events:none}
+.brand{pointer-events:auto;background:var(--glass);border:1px solid var(--edge);border-radius:14px;padding:8px 14px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 0 18px rgba(74,168,255,.35);max-width:min(560px,100%)}
+.brand h1{margin:0;font:800 15px/1.2 var(--f-d);letter-spacing:.12em;color:var(--acc);text-wrap:balance}
+.brand p{margin:3px 0 0;font:600 13px/1.35 var(--f-b);color:var(--dim)}
+.tabs{pointer-events:auto;display:flex;flex-wrap:wrap;justify-content:center;gap:6px;background:var(--glass);border:1px solid var(--edge);border-radius:16px;padding:6px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 0 18px rgba(74,168,255,.35);max-width:100%}
+.tabs button{min-height:40px;padding:0 14px;border-radius:11px;border:1px solid transparent;background:none;color:var(--ink);font:700 13px/1 var(--f-d);letter-spacing:.06em;cursor:pointer}
+.tabs button:hover{border-color:var(--edge)}
+.tabs button[aria-pressed="true"]{background:linear-gradient(180deg,rgba(90,190,255,.55),rgba(30,100,220,.45));border-color:#bfeaff;box-shadow:0 0 14px rgba(74,168,255,.7)}
+.tabs button:focus-visible,.ctl button:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.ctl{pointer-events:auto;display:flex;gap:6px;align-items:center;font:600 13px var(--f-b);color:var(--dim)}
+.ctl button{min-height:36px;padding:0 12px;border-radius:10px;border:1px solid var(--edge);background:var(--glass);color:var(--ink);font:700 12px var(--f-d);letter-spacing:.06em;cursor:pointer}
+.hint{font:600 13px var(--f-b);color:var(--dim);text-shadow:0 1px 6px #000}
+#cap{font:600 14px/1.35 var(--f-b);color:var(--ink);text-align:center;text-shadow:0 1px 8px #000;max-width:min(820px,100%)}
+@media (max-width:560px){.tabs button{padding:0 10px;font-size:11.5px}.brand h1{font-size:13px}}
+</style>
+<canvas id="view" aria-label="360 degree view from the trader's chair. Drag to look around, scroll or pinch to zoom."></canvas>
+<div class="top"><div class="brand"><h1>16TH DNA DESK · 360 FROM THE CHAIR</h1><p>Drag to look all the way around. Scroll or pinch to zoom. Straight ahead is the main chart.</p></div>
+<div class="ctl"><button type="button" id="front">FACE THE DESK</button><button type="button" id="spin" aria-pressed="false">AUTO TURN</button></div></div>
+<div class="bar"><div id="cap" aria-live="polite"></div><div class="tabs" role="group" aria-label="Choose a 360 view" id="tabs"></div><div class="hint">Concepts are AI renders from the same chair. The real build will follow the one you pick.</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+const PANOS = /*PANOS*/[];
+(function () {
+  const cv = document.getElementById('view'), cap = document.getElementById('cap'), tabs = document.getElementById('tabs');
+  const renderer = new THREE.WebGLRenderer({ canvas: cv, antialias: true }); renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
+  if ('outputEncoding' in renderer) renderer.outputEncoding = THREE.sRGBEncoding;
+  const scene = new THREE.Scene(), cam = new THREE.PerspectiveCamera(80, 1, .1, 100);
+  const geo = new THREE.SphereGeometry(10, 96, 48); geo.scale(-1, 1, 1);
+  const mat = new THREE.MeshBasicMaterial({ color: 0xffffff }); scene.add(new THREE.Mesh(geo, mat));
+  const texs = PANOS.map(p => { const t = new THREE.TextureLoader().load(p.src, () => draw()); if ('encoding' in t) t.encoding = THREE.sRGBEncoding; t.anisotropy = 4; return t; });
+  let lon = 0, lat = 0, fov = 80, cur = 0, spin = false;   /* lon 0 = straight ahead at the panorama's center */
+  function size() { const w = innerWidth, h = innerHeight; renderer.setSize(w, h, false); cam.aspect = w / h; cam.updateProjectionMatrix(); draw(); }
+  function draw() { lat = Math.max(-85, Math.min(85, lat)); const y = lon * Math.PI / 180, p = lat * Math.PI / 180;   /* the panorama's center sits at -x on the flipped sphere */
+    cam.fov = fov; cam.updateProjectionMatrix(); cam.lookAt(-Math.cos(y) * Math.cos(p), Math.sin(p), -Math.sin(y) * Math.cos(p)); renderer.render(scene, cam); }
+  function show(i) { cur = i; mat.map = texs[i]; mat.needsUpdate = true; [...tabs.children].forEach((b, j) => b.setAttribute('aria-pressed', String(j === i))); cap.textContent = PANOS[i].cap; try { localStorage.setItem('dna360', String(i)); } catch (e) {} draw(); }
+  PANOS.forEach((p, i) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = p.label; b.onclick = () => show(i); tabs.appendChild(b); });
+  let drag = null; const pts = new Map();
+  cv.addEventListener('pointerdown', e => { cv.setPointerCapture(e.pointerId); pts.set(e.pointerId, [e.clientX, e.clientY]); if (pts.size === 1) drag = { x: e.clientX, y: e.clientY, lon, lat }; else drag = null; });
+  cv.addEventListener('pointermove', e => { if (!pts.has(e.pointerId)) return; const prev = pts.get(e.pointerId); pts.set(e.pointerId, [e.clientX, e.clientY]);
+    if (pts.size === 2) { const [a, b] = [...pts.values()], d = Math.hypot(a[0] - b[0], a[1] - b[1]); if (drag && drag.pd) fov = Math.max(35, Math.min(100, fov * drag.pd / d)); drag = { pd: d }; draw(); return; }
+    if (drag && drag.x != null) { const k = fov / innerHeight; lon = drag.lon - (e.clientX - drag.x) * k; lat = drag.lat + (e.clientY - drag.y) * k; draw(); } });
+  const up = e => { pts.delete(e.pointerId); drag = null; }; cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
+  cv.addEventListener('wheel', e => { e.preventDefault(); fov = Math.max(35, Math.min(100, fov + e.deltaY * .04)); draw(); }, { passive: false });
+  addEventListener('keydown', e => { const k = { ArrowLeft: [-8, 0], ArrowRight: [8, 0], ArrowUp: [0, 6], ArrowDown: [0, -6] }[e.key]; if (k) { lon += k[0]; lat += k[1]; draw(); } });
+  document.getElementById('front').onclick = () => { lon = 0; lat = 0; fov = 80; draw(); };
+  const sb = document.getElementById('spin'), RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  sb.onclick = () => { spin = !spin; sb.setAttribute('aria-pressed', String(spin)); if (spin) tick(); };
+  function tick() { if (!spin) return; lon += .12; draw(); requestAnimationFrame(tick); }
+  addEventListener('resize', size); size();
+  let start = 1; try { const s = +localStorage.getItem('dna360'); if (s >= 0 && s < PANOS.length) start = s; } catch (e) {} show(Math.min(start, PANOS.length - 1));
+  if (!RM) { spin = false; }
+})();
+</script>
