@@ -37,13 +37,17 @@ t = rep(t, "attributeFilter:['data-theme']", "attributeFilter:['data-hx-theme']"
 t = rep(t, "if(mq.addEventListener)mq.addEventListener('change',syncTheme);else if(mq.addListener)mq.addListener(syncTheme);", "")
 assert 'data-theme' not in t.split('<!-- DEV MODE')[0] and 'dataset.theme' not in t
 
+# 2c. the blank desk buttons and screens in the 3D room ran the Holodex's old tap handlers (readout sheets,
+#     desk actions). Room taps are off unless turned on (Dev mode action "Room · 3D desk taps on / off").
+#     Dragging to look around, pinch / wheel zoom and long-press to move a screen still work.
+t = rep(t, "if(h)tap(h);else if(GRAB)releaseGrab()", "if(h&&window.HX_ROOM_TAPS)tap(h);else if(GRAB)releaseGrab()")
+
 # 3. Dev mode, pointed at the Holodex
 dm = rd('../src/devmode.js')
 dm = rep(dm, 'LS = "xvi_dev_v7"', 'LS = "holodex_dev_v1"')
 dm = rep(dm, 'const REG = [', 'const REG = window.XDEV_REG || [')
 dm = rep(dm, '.map(k => [k, k]);', '.map(k => [k, (xvi6.ACTL && xvi6.ACTL[k]) || k]);')
 dm = rep(dm, '[["holo", "Toggle coach hologram"], ["sym:next", "Next symbol"], ["sym:prev", "Previous symbol"], ["link", "Custom link"]]', '(window.XDEV_FIXED || [["holo", "Toggle coach hologram"], ["sym:next", "Next symbol"], ["sym:prev", "Previous symbol"], ["link", "Custom link"]])')
-dm = rep(dm, 'p: { label: "Order preview ready", variant: "info" } } };', 'p: { label: "Order preview ready", variant: "info" } } };\nObject.entries(window.XDEV_LIBP || {}).forEach(([k, p]) => { if (LIB[k]) LIB[k].p = Object.assign({}, LIB[k].p, p); });')
 dm = rep(dm, 'You restyle the XVI DNA trading-education web app (dark navy holo-glass look, accent #4cc3ff, fonts Orbitron/Rajdhani).', 'You restyle the C-LO Holodex trading dashboard (frosted-blue holo-glass panels over a 3D trading floor, fonts Orbitron/Rajdhani/Share Tech Mono).')
 dm = rep(dm, 'app: "XVI DNA"', 'app: "C-LO Holodex"')
 dm = rep(dm, "<small class='hint'>off (no WebGL)</small>", "<small class='hint'>The 3D dashboard is one layer here. Its wall screens can't be picked one by one.</small>")

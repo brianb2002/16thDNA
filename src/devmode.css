@@ -71,7 +71,7 @@ body.xdev-pause :not(.xdev):not(.xdev *){animation-play-state:paused!important}
 .xdc-card,.xdc-modal{padding:14px 16px;overflow:auto}.xdc-card b,.xdc-modal b,.xdc-list b,.xdc-sidebar b,.xdc-check b{display:block;font:800 13px Orbitron,sans-serif;letter-spacing:.1em;color:#9fdcff;margin-bottom:6px}.xdc p{margin:0;line-height:1.35}
 .xdc-modal{box-shadow:0 0 0 100vmax rgba(0,6,20,.45),0 0 30px rgba(76,195,255,.5)}.xdc-modal.closed{display:none}.xdc-modal .x{position:absolute;right:8px;top:6px;background:none;border:0;font-size:22px}.xdc-modal .go{margin-top:10px;padding:6px 16px;border-radius:9px;background:var(--ac);color:#03122e;border:0;font-weight:800}
 .xdc-sidebar{padding:12px;display:flex;flex-direction:column;gap:6px;transition:width .25s}.xdc-sidebar.r{left:auto!important;right:8px}.xdc-sidebar nav{display:flex;flex-direction:column;gap:4px}.xdc-sidebar nav button{text-align:left;padding:8px 10px;border-radius:9px;background:rgba(14,44,100,.6);border:1px solid rgba(160,220,255,.3)}
-.xdc-sidebar nav button:hover{border-color:#fff;box-shadow:0 0 10px rgba(76,195,255,.5)}.xdc-sidebar .tg{position:absolute;top:8px;right:8px;background:none;border:0;font-size:18px}.xdc-sidebar.r .tg{right:auto;left:8px}.xdc-sidebar.col{width:44px!important;padding:8px 4px}.xdc-sidebar.col nav,.xdc-sidebar.col b{display:none}
+.xdc-sidebar nav button:hover{border-color:#fff;box-shadow:0 0 10px rgba(76,195,255,.5)}.xdc-sidebar .tg{position:absolute;top:8px;right:8px;background:none;border:0;font-size:18px}.xdc-sidebar.r .tg{right:auto;left:8px}
 .xdc-select,.xdc-slider{padding:6px 10px}.xdc-select label,.xdc-slider label{display:flex;align-items:center;gap:8px;height:100%}.xdc-select select{flex:1;font:inherit;color:#eaf6ff;background:rgba(2,10,28,.7);border:1px solid var(--ln);border-radius:8px;padding:4px}.xdc-slider input{flex:1;accent-color:var(--ac)}
 .xdc-button button{width:100%;height:100%;border-radius:12px;font:800 13px Orbitron,sans-serif;letter-spacing:.06em;background:linear-gradient(180deg,#6fd2ff,#2a9fe0);color:#03122e;border:1px solid #bfe9ff;box-shadow:0 0 16px rgba(76,195,255,.6)}
 .xdc-button.v-ghost button{background:rgba(6,22,56,.6);color:#eaf6ff;border:1px solid var(--ln);box-shadow:0 0 10px rgba(76,195,255,.3)}.xdc-button.v-icon button{border-radius:50%;aspect-ratio:1;width:auto}
@@ -95,3 +95,46 @@ body.xdev-pause :not(.xdev):not(.xdev *){animation-play-state:paused!important}
 @media (prefers-reduced-motion:reduce){.xdc,.xdc *{transition:none!important;animation:none!important}}
 
 body:not(.x-dev) #xdevBar,body:not(.x-dev) #xdevPanel,body:not(.x-dev) #xdevOv{display:none!important}
+
+/* Erase tool + My buttons shelf + frameless image buttons */
+body.x-dev.x-deverase #xdevOv .hov{border-color:#ff5a76;background:rgba(255,90,118,.16);box-shadow:0 0 14px rgba(255,90,118,.85),inset 0 0 10px rgba(255,90,118,.35)}
+body.x-dev.x-deverase #xdevOv .hov em{background:#ff5a76;color:#fff}
+body.x-dev.x-deverase *{cursor:not-allowed}body.x-dev.x-deverase #xdevPanel *,body.x-dev.x-deverase #xdevBar *{cursor:auto}body.x-dev.x-deverase #xdevPanel button,body.x-dev.x-deverase #xdevBar button{cursor:pointer}
+#xdevBar [data-t="erase"].on{background:rgba(255,90,118,.25);border-color:#ff5a76;box-shadow:0 0 12px rgba(255,90,118,.6)}
+#xdevPanel .mine{display:grid;grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:8px;margin-top:8px}
+#xdevPanel .mine .mi{position:relative;display:block}
+#xdevPanel .mine [data-mine]{display:flex;flex-direction:column;align-items:center;gap:4px;width:100%;padding:6px;border-radius:10px;border:1px solid rgba(160,220,255,.35);background:rgba(6,22,56,.6);color:#eaf6ff;cursor:pointer}
+#xdevPanel .mine [data-mine] img{width:100%;height:52px;object-fit:contain}
+#xdevPanel .mine [data-mine] small{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10.5px}
+#xdevPanel .mine .x{position:absolute;top:-6px;right:-6px;width:22px;height:22px;min-height:0;padding:0;border-radius:50%;border:1px solid #ff5a76;background:#2a0b16;color:#ffb3c0;font:700 13px/1 Inter,sans-serif;cursor:pointer}
+.xdc-image.xdc-bare{background:none!important;border:0!important;box-shadow:none!important;padding:0!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+.xdc-image.xdc-bare img{object-fit:contain;border:0;border-radius:0;box-shadow:none}
+#xdevPanel label.tc{display:grid;grid-template-columns:1fr 48px;align-items:center;gap:2px 8px;margin:6px 0;font-size:12px}
+#xdevPanel label.tc input[type=range]{grid-column:1;width:100%}
+#xdevPanel label.tc output{grid-column:2;grid-row:1/span 2;text-align:right;font:12px "Share Tech Mono",monospace;color:#9fdcff}
+/* sidebar slides off its screen edge; the tab stays at the edge to pull it back */
+#xdevComps .xdc-sidebar.col{translate:var(--sb-tx,0px) var(--sb-ty,0px)!important}
+#xdevComps .xdc-sidebar.sbanim{transition:translate .32s cubic-bezier(.2,.8,.2,1)!important}
+.xdc-sidebar .tg{z-index:1;min-width:30px;min-height:30px;display:grid;place-items:center}
+#xdevComps .xdc-sidebar.col .tg{top:12px;right:-44px;width:40px;height:52px;border-radius:0 12px 12px 0;background:rgba(6,22,56,.85);border:1px solid rgba(160,220,255,.55);border-left:0;box-shadow:0 0 14px rgba(76,195,255,.45);font-size:22px}
+#xdevComps .xdc-sidebar.r.col .tg{right:auto;left:-44px;border-radius:12px 0 0 12px;border:1px solid rgba(160,220,255,.55);border-right:0}
+body.x-dev.x-deverase #xdevOv .selb{display:none!important}
+/* panels (pages) */
+.xdc-panel{display:flex;flex-direction:column;background:rgba(6,22,56,.9);border:1px solid var(--ln);border-radius:16px;box-shadow:0 0 0 100vmax rgba(0,6,20,.35),0 0 30px rgba(76,195,255,.45);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);overflow:hidden}
+.xdc-panel.closed{display:none!important}
+.xdc-panel header{display:flex;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid rgba(160,220,255,.25)}
+.xdc-panel header b{flex:1;font:800 14px Orbitron,sans-serif;letter-spacing:.1em;color:#9fdcff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.xdc-panel header button{width:34px;height:34px;border-radius:10px;border:1px solid rgba(160,220,255,.4);background:rgba(14,44,100,.6);font-size:20px;line-height:1;display:grid;place-items:center}
+.xdc-panel header button:hover{border-color:#fff;box-shadow:0 0 10px rgba(76,195,255,.5)}
+.xdc-panel .pbody{position:relative;flex:1;min-height:0;overflow:auto}
+.xdc-panel .ptxt{padding:12px 14px;color:#cfe6ff}
+.xdc.inpanel{position:absolute;z-index:1}
+/* button list editor */
+#xdevPanel .items{display:flex;flex-direction:column;gap:6px;margin:8px 0}
+#xdevPanel .items h5{margin:0;font:700 11px Orbitron,sans-serif;letter-spacing:.12em;color:#9fdcff}
+#xdevPanel .items .it{display:grid;grid-template-columns:1fr 1fr auto;gap:4px;align-items:center}
+#xdevPanel .items .it input,#xdevPanel .items .it select{min-width:0;width:100%}
+#xdevPanel .items .mv{display:flex;gap:2px}#xdevPanel .items .mv button{min-width:28px;padding:4px 6px}
+#xdevPanel .items .mv button[disabled]{opacity:.35}
+#xdevPanel .qrow{margin:6px 0 10px}#xdevPanel .hint.inp{color:#ffd36a}
+@media (max-width:520px){#xdevPanel .items .it{grid-template-columns:1fr auto}#xdevPanel .items .it select{grid-column:1/-1;grid-row:2}}

@@ -33,8 +33,9 @@ add("approve", "Trade · Approve ticket", click("#vlb-approve"));
 add("close", "Trade · Close position", click("#vlb-close"));
 add("scan", "Desk · Scan", click("#vlb-scan"));
 add("lock", "Desk · Lock-in symbol", click("#vlb-lock"));
-add("auto", "Desk · Autopilot (double-tap to arm)", click("#vlb-auto"));
+add("auto", "Desk · Autopilot on / off", () => { let on = false; try { on = !!A().barState().auto; } catch (e) {} click("#vlb-auto")(); if (!on) setTimeout(click("#vlb-auto"), 140); });
 add("feed", "Desk · Feed mode", click("#vlb-mode"));
+add("symbol", "Chart · Show a symbol (type or pick it)", v => { const s = String(v || "").toUpperCase().replace(/[^A-Z0-9.&]/g, ""); if (!s) return toastH("Type a symbol, like NVDA."); try { const a = A(); if (!a.sym(s)) return toastH(s + " isn't on this floor."); a.select(s); toastH("Showing " + s); } catch (e) { toastH("Couldn't switch to " + s + "."); } });
 add("day", "Theme · Day", click("#th-light"));
 add("night", "Theme · Night", click("#th-dark"));
 add("risk", "Theme · Risk", click("#th-alert"));
@@ -48,6 +49,8 @@ add("layout", "Open · Holodex layout editor", click("#edit"));
 add("widgets", "Open · Widget library", click("#vl2-sb-widgets"));
 add("profile", "Open · Profile", click("#vl2-sb-profile"));
 add("mode", "Open · Live / paper mode", click("#vl2-sb-mode"));
+try { window.HX_ROOM_TAPS = localStorage.getItem("hx_room_taps") === "1"; } catch (e) { window.HX_ROOM_TAPS = false; }
+add("roomTaps", "Room · 3D desk taps on / off", () => { window.HX_ROOM_TAPS = !window.HX_ROOM_TAPS; try { localStorage.setItem("hx_room_taps", window.HX_ROOM_TAPS ? "1" : "0"); } catch (e) {} toastH(window.HX_ROOM_TAPS ? "3D desk taps on: the room's own buttons and screens open their old panels." : "3D desk taps off: only your buttons do things."); });
 window.XDEV_FIXED = [["link", "Custom link"]];
 /* starting text and wiring for each Quick Insert component ("Label|action" pairs use the keys above) */
 window.XDEV_LIBP = {
@@ -56,12 +59,13 @@ window.XDEV_LIBP = {
   button: { label: "Scan", action: "scan" },
   tabs: { options: "Lab|scene-lab, Risk|scene-alert, Briefing|scene-brief, Dome|scene-dome, Team|scene-team" },
   toggle: { label: "Autopilot", action: "auto" },
-  input: { label: "Search…", action: "" },
+  input: { label: "Symbol, e.g. NVDA", variant: "search", action: "symbol" },
   heading: { label: "C-LO // HOLODEX" }, image: { label: "Image" }, icon: { label: "⚙", action: "settings" },
   progress: { label: "Progress" }, list: { label: "Watch", options: "AAPL|Apple|Stocks, NVDA|Nvidia|Stocks, BTC|Bitcoin|Crypto" },
   toastc: { label: "Scan complete" }
 };
-window.xvi6 = Object.assign(window.xvi6 || {}, { ACT, ACTL });
+const STATE = { auto: () => { try { return !!A().barState().auto; } catch (e) { return false; } }, roomTaps: () => !!window.HX_ROOM_TAPS };
+window.xvi6 = Object.assign(window.xvi6 || {}, { ACT, ACTL, STATE });
 
 /* ---- live data for Dev mode's chart and stat components ---- */
 if (typeof window.S === "undefined") {
