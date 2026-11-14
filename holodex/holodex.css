@@ -1,0 +1,6 @@
+/* Holodex x Dev mode: DEV launcher, and a fallback that hides the old overlay widgets when this
+   browser can't store Dev mode changes (otherwise they are hidden as Dev mode changes you can undo). */
+#xdevLaunch{position:fixed;left:calc(env(safe-area-inset-left,0px) + 14px);bottom:calc(env(safe-area-inset-bottom,0px) + 14px);z-index:40;min-width:56px;height:40px;padding:0 14px;border-radius:12px;border:1px solid rgba(127,208,255,.75);background:rgba(6,20,48,.82);color:#eaf6ff;font:700 13px/1 Orbitron,Rajdhani,sans-serif;letter-spacing:.14em;cursor:pointer;box-shadow:0 0 16px rgba(74,168,255,.45);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+#xdevLaunch:hover{border-color:#bfe8ff;box-shadow:0 0 22px rgba(74,168,255,.7)}
+#xdevLaunch:focus-visible{outline:2px solid #fff;outline-offset:2px}
+html.hx-nostore #top,html.hx-nostore #vl2-balance,html.hx-nostore #vl2-layer,html.hx-nostore #vl2-sidebar,html.hx-nostore #vl2-sbtab,html.hx-nostore #dock{display:none!important}
