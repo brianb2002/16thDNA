@@ -5553,13 +5553,13 @@ cv.addEventListener('contextmenu',e=>e.preventDefault());
 cv.addEventListener('pointerdown',e=>{cv.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});lastTouch=performance.now();hideHint();
  if(ptrs.size===1){const h=hit(e.clientX,e.clientY),o=h&&h.object;down={x:e.clientX,y:e.clientY,t:performance.now(),moved:false,h,grabbed:false};clearTimeout(lpT);lastMoveT=performance.now();
   if(GRAB&&o&&isGrabbed(o)){mode='drag';startDrag(e.clientX,e.clientY)}
-  else{mode=o&&tileSet.has(o)?'spin-ring':o&&stationSet.has(o)?'spin-holo':'orbit';
-   if(SET.hold&&o&&grabKind(o))lpT=setTimeout(()=>{if(down&&!down.moved&&ptrs.size===1){down.grabbed=true;beginGrab(o,down.x,down.y)}},450)}
+  else{mode=window.HX_ROOM_TAPS&&o&&tileSet.has(o)?'spin-ring':window.HX_ROOM_TAPS&&o&&stationSet.has(o)?'spin-holo':'orbit';
+   if(SET.hold&&window.HX_ROOM_TAPS&&o&&grabKind(o))lpT=setTimeout(()=>{if(down&&!down.moved&&ptrs.size===1){down.grabbed=true;beginGrab(o,down.x,down.y)}},450)}
   if(mode==='orbit')goal=null}
  else if(ptrs.size===2){clearTimeout(lpT);if(down)down.moved=true;
   if(GRAB){mode='pinch-edit';startPinchEdit()}else{mode='pinch';pinch0=pd();dist0=orb.dist;fov0=orb.fov;goal=null}}});
 cv.addEventListener('pointermove',e=>{
- if(!ptrs.has(e.pointerId)){if(e.pointerType==='mouse'){const h=hit(e.clientX,e.clientY);cv.style.cursor=h?(GRAB&&isGrabbed(h.object)?'move':'pointer'):'grab'}return}
+ if(!ptrs.has(e.pointerId)){if(e.pointerType==='mouse'){const h=window.HX_ROOM_TAPS?hit(e.clientX,e.clientY):null;cv.style.cursor=h?(GRAB&&isGrabbed(h.object)?'move':'pointer'):'grab'}return}
  const p=ptrs.get(e.pointerId),dx=e.clientX-p.x,dy=e.clientY-p.y;ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
  if(down&&!down.moved&&Math.hypot(e.clientX-down.x,e.clientY-down.y)>8){down.moved=true;clearTimeout(lpT)}
  const now=performance.now(),dt=Math.max(.008,(now-lastMoveT)/1000);lastMoveT=now;const live=down&&down.moved;
@@ -8192,17 +8192,20 @@ add("widgets", "Open · Widget library", click("#vl2-sb-widgets"));
 add("profile", "Open · Profile", click("#vl2-sb-profile"));
 add("mode", "Open · Live / paper mode", click("#vl2-sb-mode"));
 try { window.HX_ROOM_TAPS = localStorage.getItem("hx_room_taps") === "1"; } catch (e) { window.HX_ROOM_TAPS = false; }
-add("roomTaps", "Room · 3D desk taps on / off", () => { window.HX_ROOM_TAPS = !window.HX_ROOM_TAPS; try { localStorage.setItem("hx_room_taps", window.HX_ROOM_TAPS ? "1" : "0"); } catch (e) {} toastH(window.HX_ROOM_TAPS ? "3D desk taps on: the room's own buttons and screens open their old panels." : "3D desk taps off: only your buttons do things."); });
+add("roomTaps", "Room · old 3D desk functions on / off", () => { window.HX_ROOM_TAPS = !window.HX_ROOM_TAPS; try { localStorage.setItem("hx_room_taps", window.HX_ROOM_TAPS ? "1" : "0"); } catch (e) {} toastH(window.HX_ROOM_TAPS ? "Old 3D desk functions on: room buttons and screens open their old panels, long-press moves screens." : "Old 3D desk functions off: only your buttons do things."); });
 window.XDEV_FIXED = [["link", "Custom link"]];
+window.XDEV_APPLABEL = "Old Holodex functions (open the Holodex's own panels)";
 /* starting text and wiring for each Quick Insert component ("Label|action" pairs use the keys above) */
 window.XDEV_LIBP = {
-  sidebar: { label: "HOLODEX", options: "Buy|buy, Sell|sell, Scan|scan, Autopilot|auto, Settings|settings" },
-  select: { label: "Camera", options: "Front|view-floor, Desk|view-desk, Seat|view-seat, Wide|view-wide, Top|view-bots" },
-  button: { label: "Scan", action: "scan" },
-  tabs: { options: "Lab|scene-lab, Risk|scene-alert, Briefing|scene-brief, Dome|scene-dome, Team|scene-team" },
-  toggle: { label: "Autopilot", action: "auto" },
-  input: { label: "Symbol, e.g. NVDA", variant: "search", action: "symbol" },
-  heading: { label: "C-LO // HOLODEX" }, image: { label: "Image" }, icon: { label: "⚙", action: "settings" },
+  /* new components start blank: give each button its job with "+ New panel…" or pick an action */
+  sidebar: { label: "MENU", options: "Button 1, Button 2, Button 3" },
+  select: { label: "Choose", options: "Option 1, Option 2, Option 3" },
+  button: { label: "Button", action: "" },
+  tabs: { options: "Tab 1, Tab 2, Tab 3" },
+  toggle: { label: "Toggle", action: "" },
+  input: { label: "Type here", variant: "text", action: "" },
+  icon: { label: "★", action: "" }, heading: { label: "Heading" },
+  image: { label: "Image" },
   progress: { label: "Progress" }, list: { label: "Watch", options: "AAPL|Apple|Stocks, NVDA|Nvidia|Stocks, BTC|Bitcoin|Crypto" },
   toastc: { label: "Scan complete" }
 };
@@ -8661,7 +8664,8 @@ const liveC = new Set(); function liveComp(el, f) { el._f = f; liveC.add(el); se
 setInterval(() => { liveC.forEach(el => { if (!el.isConnected) { liveC.delete(el); return; } try { el._f(); } catch (e) {} }); }, 2000);
 function spark(c) { const g = c.getContext("2d"), b = (S.bars || []).slice(-80); g.clearRect(0, 0, c.width, c.height); if (b.length < 2) return; const lo = Math.min(...b.map(k => k.l)), hi = Math.max(...b.map(k => k.h)); g.strokeStyle = "#4cc3ff"; g.lineWidth = 3; g.beginPath(); b.forEach((k, i) => { const x = i / (b.length - 1) * c.width, y = c.height - (k.c - lo) / (hi - lo || 1) * c.height; i ? g.lineTo(x, y) : g.moveTo(x, y); }); g.stroke(); }
 /* ---- Button lists, panels (pages) and quick add ---- */
-function actSel(A, cur, attr) { return `<select ${attr}>${A.map(([k, t]) => `<option value="${k}" ${(cur || "") === k ? "selected" : ""}>${esc(t)}</option>`).join("")}<option value="__newpanel">＋ New panel…</option></select>`; }
+function actSel(A, cur, attr) { const o = ([k, t]) => `<option value="${esc(k)}" ${(cur || "") === k ? "selected" : ""}>${esc(t)}</option>`, mine = A.filter(([k]) => /^comp:/.test(k)), other = A.filter(([k]) => k === "link"), app = A.filter(([k]) => k && k !== "link" && !/^comp:/.test(k));
+  return `<select ${attr}>${A.filter(([k]) => !k).map(o).join("")}<optgroup label="Your panels and pop-ups">${mine.map(o).join("")}<option value="__newpanel">＋ New panel…</option></optgroup>${app.length ? `<optgroup label="${esc(window.XDEV_APPLABEL || "App functions")}">${app.map(o).join("")}</optgroup>` : ""}${other.length ? `<optgroup label="Other">${other.map(o).join("")}</optgroup>` : ""}</select>`; }
 function itemsEd(s, A) { const arr = itemsOf(s.props), n = arr.length;
   return `<div class="items"><h5>Buttons</h5>${arr.map((it, i) => `<div class="it"><input type="text" data-itl="${i}" value="${esc(it.l)}" aria-label="Button ${i + 1} label">${actSel(A, it.a, `data-ita="${i}" aria-label="Button ${i + 1} action"`)}<span class="mv"><button type="button" data-p="itup:${i}" aria-label="Move up" ${i ? "" : "disabled"}>↑</button><button type="button" data-p="itdn:${i}" aria-label="Move down" ${i < n - 1 ? "" : "disabled"}>↓</button><button type="button" class="dn" data-p="itdel:${i}" aria-label="Remove button ${i + 1}">×</button></span></div>`).join("") || `<p class="hint">No buttons yet.</p>`}<button type="button" class="pri" data-p="itadd">＋ Add button</button></div>`; }
 function itemsOp(op) { const s = compOfSel(); if (!s) return; const arr = itemsOf(s.props), [k, n] = op.split(":"), i = +n;

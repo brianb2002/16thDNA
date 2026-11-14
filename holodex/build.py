@@ -41,6 +41,11 @@ assert 'data-theme' not in t.split('<!-- DEV MODE')[0] and 'dataset.theme' not i
 #     desk actions). Room taps are off unless turned on (Dev mode action "Room · 3D desk taps on / off").
 #     Dragging to look around, pinch / wheel zoom and long-press to move a screen still work.
 t = rep(t, "if(h)tap(h);else if(GRAB)releaseGrab()", "if(h&&window.HX_ROOM_TAPS)tap(h);else if(GRAB)releaseGrab()")
+#     the same switch covers the rest of the old room behavior: long-press to pick up a screen, dragging the ticker
+#     ring / hologram to spin them, and the pointer cursor over room objects. Plain drag-to-look and zoom stay.
+t = rep(t, "mode=o&&tileSet.has(o)?'spin-ring':o&&stationSet.has(o)?'spin-holo':'orbit';", "mode=window.HX_ROOM_TAPS&&o&&tileSet.has(o)?'spin-ring':window.HX_ROOM_TAPS&&o&&stationSet.has(o)?'spin-holo':'orbit';")
+t = rep(t, "if(SET.hold&&o&&grabKind(o))lpT=", "if(SET.hold&&window.HX_ROOM_TAPS&&o&&grabKind(o))lpT=")
+t = rep(t, "const h=hit(e.clientX,e.clientY);cv.style.cursor=h?", "const h=window.HX_ROOM_TAPS?hit(e.clientX,e.clientY):null;cv.style.cursor=h?")
 
 # 3. Dev mode, pointed at the Holodex
 dm = rd('../src/devmode.js')

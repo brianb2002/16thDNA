@@ -50,17 +50,20 @@ add("widgets", "Open · Widget library", click("#vl2-sb-widgets"));
 add("profile", "Open · Profile", click("#vl2-sb-profile"));
 add("mode", "Open · Live / paper mode", click("#vl2-sb-mode"));
 try { window.HX_ROOM_TAPS = localStorage.getItem("hx_room_taps") === "1"; } catch (e) { window.HX_ROOM_TAPS = false; }
-add("roomTaps", "Room · 3D desk taps on / off", () => { window.HX_ROOM_TAPS = !window.HX_ROOM_TAPS; try { localStorage.setItem("hx_room_taps", window.HX_ROOM_TAPS ? "1" : "0"); } catch (e) {} toastH(window.HX_ROOM_TAPS ? "3D desk taps on: the room's own buttons and screens open their old panels." : "3D desk taps off: only your buttons do things."); });
+add("roomTaps", "Room · old 3D desk functions on / off", () => { window.HX_ROOM_TAPS = !window.HX_ROOM_TAPS; try { localStorage.setItem("hx_room_taps", window.HX_ROOM_TAPS ? "1" : "0"); } catch (e) {} toastH(window.HX_ROOM_TAPS ? "Old 3D desk functions on: room buttons and screens open their old panels, long-press moves screens." : "Old 3D desk functions off: only your buttons do things."); });
 window.XDEV_FIXED = [["link", "Custom link"]];
+window.XDEV_APPLABEL = "Old Holodex functions (open the Holodex's own panels)";
 /* starting text and wiring for each Quick Insert component ("Label|action" pairs use the keys above) */
 window.XDEV_LIBP = {
-  sidebar: { label: "HOLODEX", options: "Buy|buy, Sell|sell, Scan|scan, Autopilot|auto, Settings|settings" },
-  select: { label: "Camera", options: "Front|view-floor, Desk|view-desk, Seat|view-seat, Wide|view-wide, Top|view-bots" },
-  button: { label: "Scan", action: "scan" },
-  tabs: { options: "Lab|scene-lab, Risk|scene-alert, Briefing|scene-brief, Dome|scene-dome, Team|scene-team" },
-  toggle: { label: "Autopilot", action: "auto" },
-  input: { label: "Symbol, e.g. NVDA", variant: "search", action: "symbol" },
-  heading: { label: "C-LO // HOLODEX" }, image: { label: "Image" }, icon: { label: "⚙", action: "settings" },
+  /* new components start blank: give each button its job with "+ New panel…" or pick an action */
+  sidebar: { label: "MENU", options: "Button 1, Button 2, Button 3" },
+  select: { label: "Choose", options: "Option 1, Option 2, Option 3" },
+  button: { label: "Button", action: "" },
+  tabs: { options: "Tab 1, Tab 2, Tab 3" },
+  toggle: { label: "Toggle", action: "" },
+  input: { label: "Type here", variant: "text", action: "" },
+  icon: { label: "★", action: "" }, heading: { label: "Heading" },
+  image: { label: "Image" },
   progress: { label: "Progress" }, list: { label: "Watch", options: "AAPL|Apple|Stocks, NVDA|Nvidia|Stocks, BTC|Bitcoin|Crypto" },
   toastc: { label: "Scan complete" }
 };
