@@ -162,3 +162,5 @@
 @media (max-width:900px){.cb-g,.tv-g,.wb-g,.mt-g,.tos-g,.nt-g{grid-template-columns:1fr;grid-template-rows:auto}.cb-g .tk,.cb-g .bot,.tv-b,.nt-t{grid-column:auto;grid-row:auto}.wb-n{display:none}.sim-chart{min-height:300px}.mt-oc{top:30px}}
 
 [data-live=acct]{display:flex;flex-wrap:wrap;gap:4px 12px}.tos-ac[data-live=acct]{flex-direction:column}.nt-ct [data-live=acct]{justify-content:flex-end}
+.pnl>*{flex-shrink:0}.pnl>.book{flex-shrink:1}
+@media (max-width:900px){.cb-g .chartp,.tv-g .chartp{min-height:360px}.cb-g .chartp .sim-chart{min-height:360px}.cb-g,.tv-g,.wb-g,.mt-g,.tos-g,.nt-g{min-height:0}.nt-dom{max-height:420px}.cb-g .book{max-height:260px;overflow:auto}}

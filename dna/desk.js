@@ -391,7 +391,7 @@ const MODES = window.DNA_MODES = {
   set(m) { this.cur = m; document.documentElement.dataset.dnaMode = m; document.querySelectorAll("#dnaModes [data-mode]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.mode === m))); },
   chart() { SIM.close(); this.set("chart"); CHART.open(); },
   dash() { SIM.close(); CHART.close(); if (document.fullscreenElement) { try { document.exitFullscreen(); } catch (e) {} } this.set("dash"); },
-  full() { SIM.close(); CHART.close(); const el = document.documentElement; try { if (el.requestFullscreen && !document.fullscreenElement) el.requestFullscreen().catch(() => {}); } catch (e) {} this.set("full"); toast("Full screen: only the room. Tap ⤢ (top right) to come back."); },
+  full() { SIM.close(); CHART.close(); const el = document.documentElement; try { if (el.requestFullscreen && !document.fullscreenElement) el.requestFullscreen().then(() => { if (MODES.cur !== "full" && document.fullscreenElement) document.exitFullscreen().catch(() => {}); }).catch(() => {}); } catch (e) {} this.set("full"); toast("Full screen: only the room. Tap ⤢ (top right) to come back."); },
   sim() { CHART.close(); this.set("sim"); SIM.open(); },
   dev() { const b = document.getElementById("xdevLaunch"); if (b) b.click(); else toast("Dev mode isn't in this page."); },
   editDesk() { const b = document.getElementById("edit"); if (b) { b.click(); toast("Edit desk: tap two screens to swap them. Hold a screen to move it, pinch to resize."); } else toast("The desk editor isn't in this page."); },
