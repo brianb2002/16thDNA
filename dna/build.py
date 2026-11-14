@@ -33,11 +33,32 @@ t = rep(t, "YMAX=()=>SCENE==='team'?PI:115*D;", "YMAX=()=>PI;window.__seatLook=(
 # taps: 16th DNA keys first; ring tiles and strategy holograms go to 16th DNA; the old Holodex readout sheets stay off
 t = rep(t, " if(EDIT.on||!id)return;\n if(SET.popups)", " if(EDIT.on||!id)return;if(window.DNA_TAP&&window.DNA_TAP(o,h))return;if(window.DNA_ON)return;\n if(SET.popups)")
 
+# sharper screens: surface canvases render at up to 1.6x; drawing code and tap math still see the original size
+t = rep(t, "function mk(w,h){const c=document.createElement('canvas');c.width=w;c.height=h;return c}",
+  "function mk(w,h){const c=document.createElement('canvas'),S=(w>=256&&h>=200)?Math.min(window.HX_RES||1.6,4096/w,4096/h):1;c.width=Math.round(w*S);c.height=Math.round(h*S);"
+  "if(S>1.01){Object.defineProperty(c,'width',{get:()=>w,set:()=>{},configurable:true});Object.defineProperty(c,'height',{get:()=>h,set:()=>{},configurable:true});"
+  "const gc=HTMLCanvasElement.prototype.getContext;c.getContext=function(k,o){const g=gc.call(c,k,o);if(g&&k==='2d'&&!g.__hxs){g.scale(S,S);g.__hxs=1}return g}}return c}")
+# crisper text: only the brightest glows bloom
+t = rep(t, "new THREE.UnrealBloomPass(new THREE.Vector2(256,256),.95,.45,.06)", "new THREE.UnrealBloomPass(new THREE.Vector2(256,256),.6,.4,.55)")
+# shell objects the 3D Dev mode needs
+t = rep(t, "function hit(x,y){", "window.__hxHit=(x,y)=>hit(x,y);function hit(x,y){")
+t = rep(t, "holo.position.set(0,7.25,-.6);scene.add(holo);", "holo.position.set(0,7.25,-.6);scene.add(holo);window.__hxHolo=holo;")
+t = rep(t, "const surfOf=new WeakMap();", "const surfOf=window.__hxSurf=new Map();")
+assert "window.__hxSurf" in t, "surfOf export"
+# Dev mode: pick single 3D things on the Holodex canvas (#gl)
+t = rep(t, 'if (el.id === "x3d" && window.xvi6 && xvi6.pick3d)', 'if ((el.id === "x3d" || el.id === "gl") && window.xvi6 && xvi6.pick3d)')
+t = rep(t, '  if (s.kind === "3d") return `<div class="selh"><b>3D', '  if (s.kind === "3d" && window.XDEV_3D) return XDEV_3D.panel(s);\n  if (s.kind === "3d") return `<div class="selh"><b>3D')
+t = rep(t, 'if (UI.sel.kind === "3d") { try { const p = xvi6.pick3dById ? null : null; return UI.sel.rect; }', 'if (UI.sel.kind === "3d") { try { if (window.XDEV_3D) { const r3 = XDEV_3D.rect(UI.sel.id); if (r3) UI.sel.rect = r3; } return UI.sel.rect; }')
+t = rep(t, 'if (h.kind === "3d") { toastD("3D screens can', 'if (h.kind === "3d" && window.XDEV_3D) { XDEV_3D.erase(h); return; } if (h.kind === "3d") { toastD("3D screens can')
+t = rep(t, 'h += `<h5>3D room</h5>` + ((window.xvi6 && xvi6.layout)', 'h += `<h5>3D room</h5>` + (window.XDEV_3D ? XDEV_3D.layers() : (window.xvi6 && xvi6.layout)')
+t = rep(t, "const CSTATE = {}; let PZ = 0;", "const CSTATE = {}; let PZ = 0; window.XDEV_SELECT = h => select(h); window.XDEV_SEL = () => UI.sel; window.XDEV_RENDER = () => renderPanel(); window.XDEV_RUN = a => runAction({}, a); window.XDEV_ACTS = () => ACTN();")
+
 def uri(p, mime): return 'data:%s;base64,%s' % (mime, base64.b64encode(open(p, 'rb').read()).decode())
+simimg = '{' + ','.join('"%s":"%s"' % (k, uri('../src/assets/sim_%s.webp' % k, 'image/webp')) for k in ['cb', 'tv', 'wb', 'mt', 'tos', 'nt']) + '}'
 decor = rd('decor.js').replace('"/*BULL*/"', '"' + uri('assets/bull.jpg', 'image/jpeg') + '"').replace('"/*BEAR*/"', '"' + uri('assets/bear.jpg', 'image/jpeg') + '"')
 boot = """<script id="dna-boot">(function(){function go(){var a=document.getElementById('th-dark');if(a&&document.documentElement.dataset.hxTheme!=='dark')a.click();var s=document.getElementById('vw-seat');if(s)s.click();}
 if(document.readyState==='complete')setTimeout(go,400);else addEventListener('load',function(){setTimeout(go,400)});})();</script>"""
-add = ('\n<!-- 16TH DNA DESK -->\n<style id="dna-css">\n' + rd('desk.css') + '\n</style>\n<script id="dna-desk">\n' + rd('desk.js') + '\n</script>\n<script id="dna-decor">\n' + decor + '\n</script>\n' + boot + '\n')
+add = ('\n<!-- 16TH DNA DESK -->\n<style id="dna-css">\n' + rd('desk.css') + '\n</style>\n<script id="dna-prochart">\n' + rd('prochart.js') + '\n</script>\n<script id="dna-desk">\nwindow.DNA_SIMIMG=' + simimg + ';\n' + rd('desk.js') + '\n</script>\n<script id="dna-decor">\n' + decor + '\n</script>\n<script id="dna-dev3d">\n' + rd('dev3d.js') + '\n</script>\n' + boot + '\n')
 t = rep(t, '</body></html>', add + '</body></html>')
 t = re.sub(r'<title>[^<]*</title>', '<title>16th DNA Desk</title>', t, count=1)
 open('index.html', 'w', encoding='utf-8').write(t)

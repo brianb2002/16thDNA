@@ -18,47 +18,37 @@ Published page: the "16th DNA Desk" artifact (claude.ai). Rebuild it with `cd dn
 - Modes: Dashboard / Full screen / Simulation (practice on trading-platform-style layouts). Dev mode must stay.
 - The user moves screens and buttons themselves (Holodex Edit desk + long-press, and Dev mode).
 
-## Latest requests still OPEN (do these next)
-1. **Dev mode must select individual things in the 3D room.** Today, clicking the 3D canvas selects the whole page, because Dev mode only knows the old XVI canvas `#x3d`, not `#gl`. Plan, half-written in `dna/dev3d.js` if present:
-   - Patch the embedded devmode in `dna/build.py`:
-     - In `pickAt`, accept `el.id === "gl"`.
-     - In `selHead`, call `window.XDEV_3D.panel(sel)` for 3D selections.
-     - In `rectOfSel`, use `XDEV_3D.rect(id)` so the box follows the camera.
-     - In `eraseAt`, call `XDEV_3D.erase(h)`.
-     - In the Layers "3D room" list, use `XDEV_3D.layers()`.
-     - Expose `window.XDEV_SELECT = select`, `window.XDEV_RUN = a => runAction({}, a)` and `window.XDEV_ACTS = () => ACTN()`.
-   - Shell exports to add in `build.py`:
-     - `window.__hxHit = hit`
-     - `window.__hxSurf = surfOf` (a Map from mesh to surface)
-     - `window.__hxHolo = holo`
-   - `xvi6.pick3d(x, y)`:
-     - Raycast with `__hxHit`.
-     - If it hits a surface with buttons, find the button under the UV (flip-aware, like the shell's `hitBtn`) and return a key: `{id: "k|" + kid, name, rect}`. Get the rect from the UV corners mapped to world space through the mesh triangles, then projected to the screen.
-     - Otherwise return the whole screen (`"s|" + sf.__dnaId`), or a decor piece (`"d|bull"` and so on, raycast against the decor group).
-   - Overrides go in localStorage `dna_desk_ovr`:
-     - keys: `{label, sub, col, size, hide, act}`; `key()` in desk.js must read them.
-     - screens: `{hide, scale}`
-     - decor: `{hide, scale, rot}`
-   - Hidden keys draw as a dashed ghost while Dev mode is on (`body.x-dev`), so they can be selected and shown again.
-2. **Better quality.**
-   - In `build.py`, patch the shell's `function mk(w,h)` so surface canvases render at about 1.6× (cap each side at 4096 px). Report the logical width and height through instance getters, so the shell's drawing code and `hitBtn` math stay the same.
-   - Skip canvases under 256×200: the land mask uses `getImageData`.
-   - Raise the bloom threshold (`UnrealBloomPass(...,.95,.45,.06)` → about `.55,.4,.6`) so text isn't blurred.
-3. **Less clutter.**
-   - Hide the overhead strategy stations (`holo` group) by default, with a toggle under Settings → Room.
-   - Sparkles only on active keys.
-   - Drop the rule text lines under Strategies.
-   - Drop the hint text on the timeframe pad.
-   - Dimmer server LEDs.
-4. **Bugs / holes / errors test pass** (the user asked for it). Use `scratchpad/dt/shot.js` and `act.js`-style Playwright harnesses (CSP like claude.ai, a stubbed `window.claude`):
-   - Collect `pageerror` and console errors.
-   - Run `act()` on every `sf.btns` entry on every surface; skip live PLACE.
-   - Open and close every panel and Simulation platform.
-   - Test the practice order flow.
-   - Stub `mcp` both ways: failing (`server_not_connected`) and returning the real shapes below. Check live preview and create.
-   - Phone viewport 390×844.
-   - Dev mode 3D pick, edit, hide, reset.
-   - `node --check` every JS file.
+## Status (latest session)
+DONE in v2:
+- **Dev mode picks single 3D things.** `dna/dev3d.js` lets you pick a key, a screen, or a room piece.
+  - Keys: rename, small text, color, size, hide, new job (16th DNA actions or your Dev mode panels).
+  - Screens: hide, resize.
+  - Room pieces: hide, resize, turn.
+  - Layers → 3D room lists everything. Changes are saved in localStorage `dna_desk_ovr`.
+- **Quality:** the shell's `mk()` renders surface canvases at 1.6× (logical size kept). The bloom threshold is raised so text stays crisp.
+- **Less clutter:**
+  - The overhead strategy holograms are hidden by default (toggle in Settings → Room).
+  - Sparkles show only on active keys.
+  - Dropped the strategy rule lines and the timeframe hint.
+  - Dimmer server LEDs.
+  - The bull and bear moved to the desk ends, small.
+- **Pro Chart** (`dna/prochart.js`): the main chart opens full screen (CHART mode, or tap the big chart). It has:
+  - 6 chart types, log scale, zoom and pan, crosshair readout.
+  - 30 indicators with settings.
+  - 10 drawing tools.
+  - Chart settings. Saved in `dna_prochart_v1`.
+- **Simulation** now mirrors six broker layouts, ported from the earlier XVI build (the `src/skin.js` PLAT list; preview images in `src/assets/sim_*.webp`): Coinbase Advanced, TradingView, Webull Desktop, MetaTrader 5, thinkorswim, NinjaTrader (Chart Trader and a clickable SuperDOM).
+  - All use the shared paper engine `DNA_PAPER`: market, limit and stop orders, bracket stop/target, open orders, positions with P&L, fills.
+  - The 16th DNA coach strip with each platform's steps sits at the bottom.
+- **QA harness** (Playwright, claude.ai-like CSP, stubbed `window.claude`). It passed:
+  - live connector path (preview shape, confirm, create)
+  - connector failure fallback
+  - every key, panel, simulation and chart tool
+  - no page errors
+
+STILL OPEN / ideas:
+- The three platform layouts that are usually stock or forex (thinkorswim, MetaTrader, Webull) run on the crypto demo market. Add stock symbols if a stock data connector is added.
+- Not yet verified on the real connector: the preview and create result fields.
 
 ## Architecture
 ```

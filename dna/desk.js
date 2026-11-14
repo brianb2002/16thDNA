@@ -15,6 +15,12 @@ const now = () => performance.now();
 const rgba = (hex, a) => { const n = parseInt(hex.slice(1), 16); return "rgba(" + (n >> 16 & 255) + "," + (n >> 8 & 255) + "," + (n & 255) + "," + a + ")"; };
 const fmt = (v, d) => v == null || !isFinite(v) ? "—" : (+v).toLocaleString("en-US", { minimumFractionDigits: d == null ? (v >= 100 ? 2 : v >= 1 ? 3 : 4) : d, maximumFractionDigits: d == null ? (v >= 100 ? 2 : v >= 1 ? 3 : 5) : d });
 const pctS = v => v == null || !isFinite(v) ? "—" : (v >= 0 ? "+" : "") + v.toFixed(2) + "%";
+const OVK = "dna_desk_ovr"; let OVS = load(OVK, {});
+const OV = id => OVS[id] || {};
+const devOn = () => document.body.classList.contains("x-dev");
+let CUR = "";
+window.DNA_OVR = { get: OV, all: () => OVS, set(id, patch) { const o = Object.assign({}, OVS[id] || {}, patch); Object.keys(o).forEach(k => { if (o[k] === "" || o[k] == null) delete o[k]; }); if (Object.keys(o).length) OVS[id] = o; else delete OVS[id]; store(OVK, OVS); repaint(); },
+  reset(id) { delete OVS[id]; store(OVK, OVS); repaint(); }, resetAll() { OVS = {}; store(OVK, OVS); repaint(); } };
 const toast = m => { try { if (window.VL_BAR_API && VL_BAR_API.toastFn) return VL_BAR_API.toastFn(m); } catch (e) {} PANEL.toast(m); };
 
 /* ---------------- engine ---------------- */
@@ -52,7 +58,7 @@ async function refresh(full) {
   if (D.busy) return; D.busy = true;
   try { await loadBars(); if (full || now() - D.lastLoad > 60000) { await loadProds(); await loadBal(); D.lastLoad = now(); } if (D.view === "book") await loadBook(); D.err = ""; }
   catch (e) { D.err = (e && e.message) || "No market data"; }
-  D.busy = false; computeAll(); repaint();
+  D.busy = false; computeAll(); try { PAPER.check(); } catch (e) {} repaint(); try { CHART.update(); SIM.update(); } catch (e) { console.warn("DNA update", e); }
 }
 const repaint = () => { try { window.__HXREDRAW && window.__HXREDRAW(); } catch (e) {} };
 
@@ -124,7 +130,14 @@ function icon(g, name, cx, cy, s, col) {
 }
 /* the chosen button style: a raised glass key floating over its own pool of light */
 function key(g, sf, x, y, w, h, o) {
-  o = o || {}; const col = o.col || C.cy, on = !!o.on, pr = !!(sf && sf.press && now() - sf.press.t < 260 && Math.abs(sf.press.x - x) < 1 && Math.abs(sf.press.y - y) < 1);
+  o = o || {}; const kid = CUR + ":" + (o.kid || o.label || "key"), ov = OV("k|" + kid);
+  if (ov.label != null) o = Object.assign({}, o, { label: ov.label }); if (ov.sub != null) o = Object.assign({}, o, { sub: ov.sub || null }); if (ov.col) o = Object.assign({}, o, { col: ov.col });
+  if (ov.size && ov.size !== 100) { const s = ov.size / 100, nw = w * s, nh = h * s; x += (w - nw) / 2; y += (h - nh) / 2; w = nw; h = nh; }
+  if (ov.act) { const a = ov.act; o = Object.assign({}, o, { act: () => runAct(a) }); }
+  if (ov.hide) { if (sf) { sf.btns = sf.btns || []; sf.btns.push({ x, y, w, h, kid, label: o.label, hidden: true, act: () => {} }); }
+    if (devOn()) { g.save(); g.setLineDash([10, 8]); g.strokeStyle = "rgba(127,227,255,.6)"; g.lineWidth = 2; rr(g, x, y, w, h, 14); g.stroke(); g.restore(); fitT(g, "hidden · " + (o.label || ""), x + w / 2, y + h / 2 + 6, Math.min(h * .25, 20), w * .9, "rgba(156,196,230,.8)", "center", 700, FD); }
+    return; }
+  const col = o.col || C.cy, on = !!o.on, pr = !!(sf && sf.press && now() - sf.press.t < 260 && Math.abs(sf.press.x - x) < 1 && Math.abs(sf.press.y - y) < 1);
   const d = Math.max(4, Math.min(h * .14, 16)), r = Math.min(h * .26, 22), lift = pr ? d * .75 : 0, fy = y + lift, fh = h - d;
   g.save();
   const pool = g.createRadialGradient(x + w / 2, y + h - d * .2, 1, x + w / 2, y + h - d * .2, Math.max(w, h) * .62); pool.addColorStop(0, rgba(col, on || pr ? .55 : .32)); pool.addColorStop(1, rgba(col, 0));
@@ -134,7 +147,7 @@ function key(g, sf, x, y, w, h, o) {
   g.fillStyle = gr; g.shadowColor = col; g.shadowBlur = on || pr ? 30 : 16; g.fill(); g.shadowBlur = 0;
   g.lineWidth = Math.max(2, h * .035); g.strokeStyle = pr ? "#ffffff" : rgba(col, .95); g.stroke();
   g.save(); rr(g, x + 3, fy + 3, w - 6, fh * .42, r * .8); g.clip(); const hl = g.createLinearGradient(0, fy, 0, fy + fh * .45); hl.addColorStop(0, "rgba(255,255,255,.42)"); hl.addColorStop(1, "rgba(255,255,255,0)"); g.fillStyle = hl; g.fillRect(x, fy, w, fh * .5); g.restore();
-  if (on || o.spark !== false) { const t = Date.now() / 1000, n = on ? 5 : 2; for (let i = 0; i < n; i++) { const ph = (t * .35 + i * .37 + (x * .013 % 1)) % 1, px = x + w * (.12 + ((i * .618 + x * .007) % 1) * .76), py = fy - ph * h * .35;
+  if (on || pr) { const t = Date.now() / 1000, n = 4; for (let i = 0; i < n; i++) { const ph = (t * .35 + i * .37 + (x * .013 % 1)) % 1, px = x + w * (.12 + ((i * .618 + x * .007) % 1) * .76), py = fy - ph * h * .35;
     g.fillStyle = rgba(col === C.cy ? "#bff3ff" : col, (1 - ph) * .85); g.beginPath(); g.arc(px, py, Math.max(1.2, h * .025), 0, 7); g.fill(); } }
   const ink = on || pr ? C.wh : (o.ink || C.wh), lab = o.label || "", sub = o.sub, ic = o.icon;
   if (ic && o.iconTop && fh > 64) { icon(g, ic, x + w / 2, fy + fh * .3, Math.min(fh * .3, w * .3), ink); fitT(g, lab, x + w / 2, fy + fh * (sub ? .66 : .78), Math.min(fh * .24, 30), w * .86, ink, "center", 800, FD); if (sub) fitT(g, sub, x + w / 2, fy + fh * .88, Math.min(fh * .13, 18), w * .86, C.cy2, "center", 700, FM); }
@@ -142,7 +155,7 @@ function key(g, sf, x, y, w, h, o) {
     if (ic) { const s = fs * 1.05, tw = (g.font = "800 " + Math.round(fs) + "px " + FD, g.measureText(lab).width); const sx = x + w / 2 - (tw + s * 1.3) / 2 + s / 2; icon(g, ic, sx, fy + fh * (sub ? .4 : .5), s, ink); tx = sx + s * .8 + tw / 2; }
     fitT(g, lab, tx, fy + fh * (sub ? .52 : .5) + fs * .36, fs, w * .82, ink, "center", 800, FD); if (sub) fitT(g, sub, x + w / 2, fy + fh * .84, fs * .5, w * .86, C.cy2, "center", 700, FM); }
   g.restore();
-  if (sf && o.act) { sf.btns = sf.btns || []; sf.btns.push({ x, y, w, h, act: o.act }); }
+  if (sf && o.act) { sf.btns = sf.btns || []; sf.btns.push({ x, y, w, h, act: o.act, kid, label: o.label, col }); }
 }
 function chip(g, x, y, w, h, label, col, fill) { g.save(); rr(g, x, y, w, h, h / 2); g.fillStyle = fill ? col : rgba(col, .14); g.shadowColor = col; g.shadowBlur = fill ? 14 : 0; g.fill(); g.shadowBlur = 0; g.strokeStyle = col; g.lineWidth = 1.5; g.stroke(); g.restore(); fitT(g, label, x + w / 2, y + h * .68, h * .52, w * .9, fill ? C.ink : col, "center", 800, FD); }
 
@@ -172,7 +185,7 @@ function wallChart(g, W, H, sf) {
   T(g, fmt(last), W * .56, 48 * k, 32 * k, C.wh, "center", 800, FM); T(g, (ch >= 0 ? "▲ " : "▼ ") + pctS(ch).replace("+", ""), W * .74, 48 * k, 24 * k, ch >= 0 ? C.gr : C.rd, "center", 800, FM);
   chip(g, W - 176 * k, 22 * k, 150 * k, 34 * k, live() ? "● LIVE" : "● DEMO", live() ? C.gr : C.am);
   const bx = 26 * k, by = 70 * k, bw = W - 52 * k, bh = 252 * k;
-  if (D.view === "chart") drawChart(g, bx, by, bw, bh); else VIEWS[D.view](g, bx, by, bw, bh, k, sf);
+  if (D.view === "chart") { drawChart(g, bx, by, bw, bh); sf.btns.push({ x: bx, y: by, w: bw, h: bh, act: () => MODES.chart(), kid: CUR + ":plot", label: "Chart (opens full screen)", row: true }); T(g, "⤢ TAP FOR FULL CHART", bx + 8 * k, by + bh - 8 * k, 12 * k, C.dim, "left", 700, FD); } else VIEWS[D.view](g, bx, by, bw, bh, k, sf);
   const tw = bw / TABS.length; TABS.forEach(([id, lab, ic], i) => key(g, sf, bx + i * tw + 5 * k, 332 * k, tw - 10 * k, 60 * k, { label: lab, icon: ic, on: D.view === id, act: () => { D.view = id; if (id === "book") loadBook().then(repaint); repaint(); } }));
 }
 const VIEWS = {
@@ -198,9 +211,9 @@ const WALL = {
   tickers: (g, W, H, sf) => { const k = H / 400; head(g, W, H, "WATCHLIST", live() ? "LIVE" : "DEMO", k); const rh = 33 * k;
     WATCH.forEach((s, i) => { const p = D.prods[s] || {}, y = 76 * k + i * rh, sel = s === D.sym; if (sel) { g.fillStyle = "rgba(127,227,255,.14)"; rr(g, 14 * k, y, W - 28 * k, rh - 3 * k, 8 * k); g.fill(); }
       T(g, s, 24 * k, y + rh * .7, 21 * k, sel ? C.cy2 : C.wh, "left", 800, FD); T(g, fmt(p.p), W * .68, y + rh * .7, 19 * k, C.cy2, "right", 700, FM); T(g, pctS(p.ch), W - 22 * k, y + rh * .7, 18 * k, (p.ch || 0) < 0 ? C.rd : C.gr, "right", 700, FM);
-      sf.btns.push({ x: 14 * k, y, w: W - 28 * k, h: rh - 2, act: () => setSym(s) }); }); },
+      sf.btns.push({ x: 14 * k, y, w: W - 28 * k, h: rh - 2, act: () => setSym(s), kid: CUR + ":" + s, label: s, row: true }); }); },
   heat: (g, W, H, sf) => { const k = H / 400; head(g, W, H, "COACH", live() ? "LIVE" : "DEMO", k); const col = CO.sig === "BUY" ? C.gr : CO.sig === "SELL" ? C.rd : C.am;
-    key(g, sf, W * .12, 78 * k, W * .76, 78 * k, { label: CO.sig, icon: CO.sig === "BUY" ? "up" : CO.sig === "SELL" ? "down" : "clock", col, on: true, act: () => { D.view = "coach"; repaint(); } });
+    key(g, sf, W * .12, 78 * k, W * .76, 78 * k, { kid: "signal", label: CO.sig, icon: CO.sig === "BUY" ? "up" : CO.sig === "SELL" ? "down" : "clock", col, on: true, act: () => { D.view = "coach"; repaint(); } });
     fitT(g, CO.why, W / 2, 186 * k, 21 * k, W - 40 * k, C.wh, "center", 700);
     CO.checks.forEach((c, i) => { const y = (226 + i * 40) * k; T(g, c[0] ? "✓" : "✕", 24 * k, y, 24 * k, c[0] ? C.gr : C.rd, "left", 900); fitT(g, c[1], 56 * k, y, 18 * k, W - 72 * k, C.dim, "left", 600); }); },
   chart: wallChart,
@@ -209,13 +222,12 @@ const WALL = {
     [[D.sym, fmt(b.coin || 0, 8)], ["TRADES", String(D.journal.length)], ["BADGES", badges().filter(x => x[1]).length + " / 8"], ["DAILY STOP", "$" + D.dailyStop.toFixed(2)]].forEach((r, i) => { const y = (214 + i * 36) * k; T(g, r[0], 26 * k, y, 18 * k, C.dim, "left", 700, FD); T(g, r[1], W - 24 * k, y, 21 * k, C.wh, "right", 700, FM); });
     key(g, sf, 22 * k, 344 * k, W - 44 * k, 46 * k, { label: "DETAILS", icon: "user", spark: false, act: () => { D.view = "account"; repaint(); } }); },
   sectors: (g, W, H, sf) => { const k = H / 400; head(g, W, H, "STRATEGIES", STRATS.length ? STRATS.filter(s => s[1] === "SIGNAL").length + " SIGNAL" : "LOADING", k);
-    STRATS.forEach((s, i) => { const y = (76 + i * 52) * k, col = s[1] === "SIGNAL" ? C.gr : s[1] === "WAIT" ? C.am : C.dim; fitT(g, s[0], 24 * k, y + 28 * k, 18 * k, W * .5, C.wh, "left", 800, FD); chip(g, W - 150 * k, y + 8 * k, 128 * k, 30 * k, s[1], col, s[1] === "SIGNAL"); fitT(g, s[2], 24 * k, y + 46 * k, 13 * k, W * .6, C.dim, "left", 600);
-      sf.btns.push({ x: 14 * k, y, w: W - 28 * k, h: 50 * k, act: () => PANEL.strategy(i) }); }); }
+    STRATS.forEach((s, i) => { const y = (76 + i * 52) * k, col = s[1] === "SIGNAL" ? C.gr : s[1] === "WAIT" ? C.am : C.dim; fitT(g, s[0], 24 * k, y + 28 * k, 18 * k, W * .5, C.wh, "left", 800, FD); chip(g, W - 150 * k, y + 8 * k, 128 * k, 30 * k, s[1], col, s[1] === "SIGNAL");       sf.btns.push({ x: 14 * k, y, w: W - 28 * k, h: 50 * k, act: () => PANEL.strategy(i), kid: CUR + ":strat" + i, label: s[0], row: true }); }); }
 };
 const ROW = {
   positions: () => ({ label: "ASK", sub: "the teacher", icon: "ask", col: C.cy, act: () => PANEL.ask() }),
   focus: () => ({ label: "SELL", sub: live() ? "live · " + D.sym : "practice · " + D.sym, icon: "down", col: C.rd, on: D.side === "SELL", act: () => armTicket("SELL") }),
-  trades: () => { const l = D.bars.length ? D.bars[D.bars.length - 1].c : null; return { label: D.sym + "-USD", sub: fmt(l) + "  ·  tap for next", icon: "sym", col: C.bl, act: () => setSym(WATCH[(WATCH.indexOf(D.sym) + 1) % WATCH.length]) }; },
+  trades: () => { const l = D.bars.length ? D.bars[D.bars.length - 1].c : null; return { kid: "main", label: D.sym + "-USD", sub: fmt(l) + "  ·  tap for next", icon: "sym", col: C.bl, act: () => setSym(WATCH[(WATCH.indexOf(D.sym) + 1) % WATCH.length]) }; },
   mheat: () => ({ label: "BUY", sub: live() ? "live · " + D.sym : "practice · " + D.sym, icon: "up", col: C.gr, on: D.side === "BUY", act: () => armTicket("BUY") }),
   pnl: () => ({ label: "SETTINGS", sub: "AI · broker · desk", icon: "gear", col: C.cy, act: () => PANEL.settings() })
 };
@@ -224,10 +236,10 @@ const PAD = {
     TFS.forEach(([t], i) => key(g, sf, (22 + (i % 3) * 244) * k, (82 + Math.floor(i / 3) * 92) * k, 226 * k, 76 * k, { label: t, icon: "clock", on: t === D.tf, act: () => { D.tf = t; saveSt(); refresh(); } }));
     T(g, "INDICATORS", 22 * k, 290 * k, 20 * k, C.dim, "left", 700, FD);
     ["EMA", "RSI", "MACD", "VOL"].forEach((t, i) => key(g, sf, (22 + i * 182) * k, 308 * k, 166 * k, 72 * k, { label: t, col: C.am, on: D.ind[t], act: () => { D.ind[t] = !D.ind[t]; saveSt(); D.view = "chart"; repaint(); } }));
-    T(g, "Tap a key: the big chart follows.", 22 * k, 430 * k, 18 * k, C.dim, "left", 600); },
+  },
   order: (g, W, H, sf) => { const k = H / 480, u = U(), ai = !!(u && u.aiReady && u.aiReady()), br = live(); head(g, W, H, "CONNECT", null, k);
-    key(g, sf, 22 * k, 80 * k, W - 44 * k, 104 * k, { label: "CONNECT AI", sub: ai ? "● Claude built in · " + (u.lock ? "model locked" : "auto") : "○ not connected · tap to set up", icon: "link", col: C.bl, on: ai, act: () => PANEL.settings("ai") });
-    key(g, sf, 22 * k, 200 * k, W - 44 * k, 104 * k, { label: "BROKER", sub: br ? "● Coinbase connector · live" : "○ practice · tap to connect Coinbase", icon: "bank", col: "#1fae7a", on: br, act: () => PANEL.settings("broker") });
+    key(g, sf, 22 * k, 80 * k, W - 44 * k, 104 * k, { kid: "ai", label: "CONNECT AI", sub: ai ? "● Claude built in · " + (u.lock ? "model locked" : "auto") : "○ not connected · tap to set up", icon: "link", col: C.bl, on: ai, act: () => PANEL.settings("ai") });
+    key(g, sf, 22 * k, 200 * k, W - 44 * k, 104 * k, { kid: "broker", label: "BROKER", sub: br ? "● Coinbase connector · live" : "○ practice · tap to connect Coinbase", icon: "bank", col: "#1fae7a", on: br, act: () => PANEL.settings("broker") });
     key(g, sf, 22 * k, 330 * k, (W - 60 * k) / 2, 70 * k, { label: "DEV MODE", icon: "dev", act: () => MODES.dev() });
     key(g, sf, 38 * k + (W - 60 * k) / 2, 330 * k, (W - 60 * k) / 2, 70 * k, { label: "EDIT DESK", icon: "pencil", act: () => MODES.editDesk() }); },
   ctrl: (g, W, H, sf) => { const k = H / 660; head(g, W, H, "DESK", null, k);
@@ -272,10 +284,11 @@ async function placeOrder() {
 
 window.DNA_PAINT = function (kind, id, g, W, H, sf) {
   if (sf && kind !== "ring") sf.btns = [];
+  CUR = kind + ":" + (kind === "tile" || kind === "station" ? (kind === "station" ? (STN.has(id) || STN.set(id, STN.size), STN.get(id)) : id) : id); if (sf) sf.__dnaId = CUR;
   g.save();
   try {
     if (kind === "wall" && WALL[id]) WALL[id](g, W, H, sf);
-    else if (kind === "row" && ROW[id]) { const o = ROW[id](); key(g, sf, W * .04, H * .08, W * .92, H * .84, o); }
+    else if (kind === "row" && ROW[id]) { const o = Object.assign({ kid: "main" }, ROW[id]()); key(g, sf, W * .04, H * .08, W * .92, H * .84, o); }
     else if (kind === "pad" && PAD[id]) PAD[id](g, W, H, sf);
     else if (kind === "ticket") ticket(g, W, H, sf);
     else if (kind === "watch") { const k = H / 340; head(g, W, H, "LEARN", null, k); [["COACH", "cap", () => { D.view = "coach"; repaint(); }], ["LESSONS", "book", () => PANEL.lessons()], ["RESEARCH", "globe", () => PANEL.research()], ["JOURNAL", "journal", () => PANEL.journal()]]
@@ -291,8 +304,23 @@ window.DNA_PAINT = function (kind, id, g, W, H, sf) {
     else if (kind === "ring") { let x = 20 - (Date.now() / 40 % 600); const items = WATCH.map(s => { const p = D.prods[s] || {}; return [s + " " + fmt(p.p) + " " + pctS(p.ch) + "   ·   ", (p.ch || 0) < 0 ? C.rd : C.cy2]; }); for (let r = 0; r < 4; r++) items.forEach(([s, col]) => { T(g, s, x, H * .72, H * .6, col, "left", 700, FM); x += g.measureText(s).width; }); }
   } catch (e) { console.warn("DNA paint", kind, id, e); }
   g.restore();
+  if (sf && OV("s|" + CUR).hide && !devOn()) sf.btns = [];
 };
 const STN = new Map();
+/* every job a key can be given in Dev mode (plus Dev mode's own actions and your panels) */
+const ACTS = {
+  "dna:buy": ["Trade · Arm BUY", () => armTicket("BUY")], "dna:sell": ["Trade · Arm SELL", () => armTicket("SELL")], "dna:preview": ["Trade · Preview order", () => previewOrder()], "dna:place": ["Trade · Place order (asks first)", () => placeOrder()],
+  "dna:next": ["Chart · Next symbol", () => setSym(WATCH[(WATCH.indexOf(D.sym) + 1) % WATCH.length])], "dna:prev": ["Chart · Previous symbol", () => setSym(WATCH[(WATCH.indexOf(D.sym) - 1 + WATCH.length) % WATCH.length])],
+  "dna:ask": ["Open · Ask the teacher", () => PANEL.ask()], "dna:settings": ["Open · Settings", () => PANEL.settings()], "dna:lessons": ["Open · Lessons", () => PANEL.lessons()], "dna:research": ["Open · Research", () => PANEL.research()],
+  "dna:journal": ["Open · Journal", () => PANEL.journal()], "dna:progress": ["Open · Progress", () => PANEL.progress()],
+  "dna:sim": ["Mode · Simulation", () => MODES.sim()], "dna:full": ["Mode · Full screen", () => MODES.full()], "dna:dash": ["Mode · Dashboard", () => MODES.dash()], "dna:dev": ["Mode · Dev mode", () => MODES.dev()], "dna:edit": ["Mode · Edit desk", () => MODES.editDesk()], "dna:front": ["Camera · Face the desk", () => MODES.front()]
+};
+TABS.forEach(([id, l]) => ACTS["dna:view-" + id] = ["Big screen · " + l, () => { D.view = id; if (id === "book") loadBook().then(repaint); repaint(); }]);
+TFS.forEach(([tf]) => ACTS["dna:tf-" + tf] = ["Chart · " + tf, () => { D.tf = tf; saveSt(); refresh(); }]);
+["EMA", "RSI", "MACD", "VOL"].forEach(n => ACTS["dna:ind-" + n] = ["Chart · " + n + " on / off", () => { D.ind[n] = !D.ind[n]; saveSt(); repaint(); }]);
+WATCH.forEach(s => ACTS["dna:sym-" + s] = ["Chart · Show " + s, () => setSym(s)]);
+function runAct(a) { if (ACTS[a]) return ACTS[a][1](); if (window.XDEV_RUN) return window.XDEV_RUN(a); toast("That job isn't available."); }
+D.acts = () => Object.entries(ACTS).map(([k, v]) => [k, v[0]]);
 D.coach = () => CO; D.strats = () => STRATS; D.refresh = refresh;
 /* taps on the ring tiles and strategy holograms (they aren't button surfaces in the shell) */
 window.DNA_TAP = function (o) { const u = o && o.userData || {}; if (u.dnaSym) { setSym(u.dnaSym); return true; } if (u.dnaStrat != null) { PANEL.strategy(u.dnaStrat); return true; } return false; };
@@ -324,7 +352,7 @@ const PANEL = window.DNA_PANEL = {
       <section class="dna-sec" id="dnaSBr"><h3>BROKER</h3><p class="dna-p">${mcpOn ? "● Using your Claude Coinbase connector: live prices, live balance, live orders (always previewed and confirmed)." : "○ Practice mode: demo prices and paper money. Switch on to use your Coinbase connector from claude.ai."}</p>
       <button type="button" class="dna-k" id="dnaBr">${mcpOn ? "SWITCH TO PRACTICE" : "USE MY COINBASE CONNECTOR"}</button></section>
       <section class="dna-sec"><h3>RISK</h3><label class="dna-lab">Daily stop ($) <input class="dna-in" id="dnaStop" type="number" min="0.1" step="0.1" value="${D.dailyStop}"></label><label class="dna-lab">Default size ($) <input class="dna-in" id="dnaSize" type="number" min="1" step="1" value="${D.size}"></label></section>
-      <section class="dna-sec"><h3>ROOM</h3><div class="dna-row wrap">${[["beasts", "Bull & bear"], ["clocks", "World clocks"], ["news", "News band"], ["coin", "Bitcoin"]].map(([k, l]) => `<label class="dna-chip"><input type="checkbox" data-dec="${k}" ${!window.DNA_DECOR || window.DNA_DECOR.get(k) ? "checked" : ""}> ${l}</label>`).join("")}</div></section>
+      <section class="dna-sec"><h3>ROOM</h3><div class="dna-row wrap">${[["beasts", "Bull & bear"], ["clocks", "World clocks"], ["news", "News band"], ["coin", "Bitcoin"], ["racks", "Server walls"], ["stations", "Strategy holograms overhead"]].map(([k, l]) => `<label class="dna-chip"><input type="checkbox" data-dec="${k}" ${!window.DNA_DECOR || window.DNA_DECOR.get(k) ? "checked" : ""}> ${l}</label>`).join("")}</div></section>
       <section class="dna-sec"><h3>DESK</h3><div class="dna-row wrap"><button type="button" class="dna-k" data-m="dash">DASHBOARD</button><button type="button" class="dna-k" data-m="full">FULL SCREEN</button><button type="button" class="dna-k" data-m="sim">SIMULATION</button><button type="button" class="dna-k" data-m="dev">DEV MODE</button><button type="button" class="dna-k" data-m="edit">EDIT DESK</button><button type="button" class="dna-k" data-m="front">FACE THE DESK</button></div></section>`);
     bd.querySelectorAll("[data-dec]").forEach(c => c.onchange = () => { if (window.DNA_DECOR) window.DNA_DECOR.set(c.dataset.dec, c.checked); });
     bd.querySelector("#dnaLock").onchange = e => { try { u.setLock(e.target.value ? { model: e.target.value } : null); toast(e.target.value ? "AI model locked" : "Model lock off"); } catch (er) { toast("Couldn't change the lock: " + er.message); } repaint(); };
@@ -361,55 +389,179 @@ const LESSONS = [
 const MODES = window.DNA_MODES = {
   cur: "dash",
   set(m) { this.cur = m; document.documentElement.dataset.dnaMode = m; document.querySelectorAll("#dnaModes [data-mode]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.mode === m))); },
-  dash() { SIM.close(); if (document.fullscreenElement) { try { document.exitFullscreen(); } catch (e) {} } this.set("dash"); },
-  full() { SIM.close(); const el = document.documentElement; try { if (el.requestFullscreen && !document.fullscreenElement) el.requestFullscreen().catch(() => {}); } catch (e) {} this.set("full"); toast("Full screen: only the room. Tap ⤢ (top right) to come back."); },
-  sim() { this.set("sim"); SIM.open(); },
+  chart() { SIM.close(); this.set("chart"); CHART.open(); },
+  dash() { SIM.close(); CHART.close(); if (document.fullscreenElement) { try { document.exitFullscreen(); } catch (e) {} } this.set("dash"); },
+  full() { SIM.close(); CHART.close(); const el = document.documentElement; try { if (el.requestFullscreen && !document.fullscreenElement) el.requestFullscreen().catch(() => {}); } catch (e) {} this.set("full"); toast("Full screen: only the room. Tap ⤢ (top right) to come back."); },
+  sim() { CHART.close(); this.set("sim"); SIM.open(); },
   dev() { const b = document.getElementById("xdevLaunch"); if (b) b.click(); else toast("Dev mode isn't in this page."); },
   editDesk() { const b = document.getElementById("edit"); if (b) { b.click(); toast("Edit desk: tap two screens to swap them. Hold a screen to move it, pinch to resize."); } else toast("The desk editor isn't in this page."); },
   front() { const b = document.getElementById("vw-seat"); if (b) b.click(); }
 };
 document.addEventListener("fullscreenchange", () => { if (!document.fullscreenElement && MODES.cur === "full") MODES.set("dash"); });
 
-/* Simulation mode: practice on three common trading-app layouts with the same demo prices and paper money */
-const SIM = window.DNA_SIM = {
-  el: null, plat: "pro", side: "BUY", step: 0,
-  PL: { pro: ["PRO EXCHANGE", "Advanced-trade layout: chart in the middle, order book and trades on the right, order form on the left. Like Coinbase Advanced."],
-        simple: ["SIMPLE APP", "One big price, one big buy button. Like the beginner phone apps (Coinbase simple, Robinhood)."],
-        broker: ["BROKER TERMINAL", "Watchlist left, chart, positions under it, order entry right. Like Webull or a desktop broker."] },
-  STEPS: { pro: ["Pick the pair in the top left (BTC-USD).", "Read the order book: red asks above, green bids below.", "Choose MARKET, type a size in USD.", "Press BUY or SELL, then review the confirm box."], simple: ["Find the big price and the 24h change.", "Tap BUY, type a dollar amount.", "Review the fee line before you confirm.", "Check your order in the history list."], broker: ["Pick a symbol from the watchlist.", "Switch the chart timeframe.", "Fill the order ticket: side, type, quantity.", "Confirm, then find it under Positions."] },
-  open() { this.close(); const w = document.createElement("div"); w.className = "dna dna-sim"; w.setAttribute("role", "dialog"); w.setAttribute("aria-label", "Simulation mode"); this.el = w; document.body.append(w); this.render(); },
-  close() { if (this.el) { this.el.remove(); this.el = null; } },
-  render() { const w = this.el; if (!w) return; const P = this.PL[this.plat], last = D.bars.length ? D.bars[D.bars.length - 1].c : null, bk = D.book;
-    const steps = this.STEPS[this.plat].map((s, i) => `<li class="${i < this.step ? "ok" : i === this.step ? "now" : ""}">${esc(s)}</li>`).join("");
-    const form = `<div class="sim-form"><div class="sim-seg"><button type="button" class="${this.side === "BUY" ? "on b" : ""}" data-side="BUY">BUY</button><button type="button" class="${this.side === "SELL" ? "on s" : ""}" data-side="SELL">SELL</button></div><label>Order type<select class="dna-in"><option>Market</option></select></label><label>Amount (USD)<input class="dna-in" id="simAmt" type="number" min="1" value="${D.size}"></label><p class="sim-fee">≈ ${last ? (D.size / last).toFixed(8) : "—"} ${D.sym} · fee ≈ $${(D.size * .006).toFixed(3)}</p><button type="button" class="sim-go ${this.side === "BUY" ? "b" : "s"}" id="simGo">${this.side} ${D.sym}</button></div>`;
-    const book = bk && bk.asks ? `<div class="sim-book">${bk.asks.slice(0, 6).reverse().map(r => `<div class="r"><span>${fmt(+r.price)}</span><span>${(+r.size).toFixed(4)}</span></div>`).join("")}<div class="m">${fmt(last)}</div>${bk.bids.slice(0, 6).map(r => `<div class="g"><span>${fmt(+r.price)}</span><span>${(+r.size).toFixed(4)}</span></div>`).join("")}</div>` : `<div class="sim-book"><p>Loading book…</p></div>`;
-    const watch = `<div class="sim-watch">${WATCH.map(s => { const p = D.prods[s] || {}; return `<button type="button" data-sym="${s}" class="${s === D.sym ? "on" : ""}"><b>${s}</b><span>${fmt(p.p)}</span><i class="${(p.ch || 0) < 0 ? "r" : "g"}">${pctS(p.ch)}</i></button>`; }).join("")}</div>`;
-    const hist = `<div class="sim-hist"><h4>History</h4>${D.journal.filter(t => !t.live).slice(-5).reverse().map(t => `<div><span class="${t.side === "BUY" ? "g" : "r"}">${t.side}</span> $${(+t.usd).toFixed(2)} ${t.sym} @ ${fmt(t.px)}</div>`).join("") || "<div>None yet</div>"}</div>`;
-    const tfs = `<div class="sim-tf">${TFS.map(([t]) => `<button type="button" data-tf="${t}" class="${t === D.tf ? "on" : ""}">${t}</button>`).join("")}</div>`;
-    const body = this.plat === "pro" ? `<div class="sim-pro"><div class="ca">${form}</div><div class="cb"><div class="sim-pair">${D.sym}-USD <b>${fmt(last)}</b></div>${tfs}<canvas id="simCv"></canvas></div><div class="cc">${book}</div></div>`
-      : this.plat === "simple" ? `<div class="sim-simple"><div class="sim-big">${D.sym}<b>$${fmt(last)}</b><i class="${(D.prods[D.sym] || {}).ch < 0 ? "r" : "g"}">${pctS((D.prods[D.sym] || {}).ch)} today</i></div><canvas id="simCv"></canvas>${form}${hist}</div>`
-      : `<div class="sim-broker"><div class="ca">${watch}</div><div class="cb">${tfs}<canvas id="simCv"></canvas>${hist}</div><div class="cc">${form}</div></div>`;
-    w.innerHTML = `<div class="sim-top"><div class="sim-plats">${Object.keys(this.PL).map(k => `<button type="button" data-plat="${k}" aria-pressed="${k === this.plat}">${this.PL[k][0]}</button>`).join("")}</div><span class="sim-tag">PRACTICE · PAPER MONEY · ${live() ? "LIVE PRICES" : "DEMO PRICES"}</span><button type="button" class="dna-x" id="simX" aria-label="Back to the dashboard">✕ DASHBOARD</button></div>
-      <div class="sim-main"><div class="sim-steps"><h3>${esc(P[0])}</h3><p>${esc(P[1])}</p><ol>${steps}</ol></div><div class="sim-app">${body}</div></div>`;
-    const cv = w.querySelector("#simCv"); if (cv) { const r = cv.getBoundingClientRect(), dp = Math.min(2, devicePixelRatio || 1); cv.width = Math.max(200, r.width * dp); cv.height = Math.max(120, r.height * dp); const g = cv.getContext("2d"); const sv = D.view; D.view = "sim"; drawChart(g, 8 * dp, 8 * dp, cv.width - 16 * dp, cv.height - 16 * dp); D.view = sv; }
-    w.querySelector("#simX").onclick = () => MODES.dash();
-    w.querySelectorAll("[data-plat]").forEach(b => b.onclick = () => { this.plat = b.dataset.plat; this.step = 0; this.render(); });
-    w.querySelectorAll("[data-side]").forEach(b => b.onclick = () => { this.side = b.dataset.side; this.adv(this.plat === "simple" ? 1 : 2); this.render(); });
-    w.querySelectorAll("[data-sym]").forEach(b => b.onclick = () => { setSym(b.dataset.sym); this.adv(0); setTimeout(() => this.render(), 600); });
-    w.querySelectorAll("[data-tf]").forEach(b => b.onclick = () => { D.tf = b.dataset.tf; saveSt(); this.adv(this.plat === "broker" ? 1 : 0); refresh().then(() => this.render()); });
-    const amt = w.querySelector("#simAmt"); if (amt) amt.onchange = () => { D.size = Math.max(1, Math.round(+amt.value || 5)); saveSt(); this.adv(2); this.render(); };
-    w.querySelector("#simGo").onclick = async () => { const px = D.bars.length ? D.bars[D.bars.length - 1].c : null; if (!px) return;
-      if (!(await window.xviConfirm("Practice order (paper money)\n\n" + this.side + " $" + D.size.toFixed(2) + " of " + D.sym + " at market (~" + fmt(px) + ")\nFee ≈ $" + (D.size * .006).toFixed(3), "Confirm practice order"))) return;
-      D.journal.push({ t: Date.now(), sym: D.sym, side: this.side, usd: D.size, px, live: false, coach: CO.sig, plat: this.plat }); store(LSJ, D.journal.slice(-500)); this.step = 4;
-      const done = new Set(load("dna_sim_plats", [])); done.add(this.plat); store("dna_sim_plats", [...done]); store("dna_sim_done", done.size); toast("Practice order filled. Drill complete on " + this.PL[this.plat][0] + "."); this.render(); repaint(); };
-    if (this.plat === "pro" && !D.book) loadBook().then(() => this.render()); },
-  adv(i) { this.step = Math.max(this.step, i + 1); }
+/* ---------------- paper trading engine (shared by the desk ticket and every platform simulation) ---------------- */
+const PAPER = window.DNA_PAPER = {
+  open: load("dna_open_v1", []),
+  last: s => s === D.sym && D.bars.length ? D.bars[D.bars.length - 1].c : (D.prods[s] || {}).p,
+  save() { store("dna_open_v1", this.open.slice(-100)); },
+  fill(o, px) { const rec = { t: Date.now(), sym: o.sym, side: o.side, usd: o.qty * px, qty: o.qty, px, live: false, coach: CO.sig, plat: o.plat, type: o.type };
+    if (o.sl) rec.sl = o.sl; if (o.tp) rec.tp = o.tp; D.journal.push(rec); store(LSJ, D.journal.slice(-500)); return rec; },
+  place(o) { const px = this.last(o.sym); if (!px) throw new Error("No price yet"); o.id = "p" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5); o.t = Date.now();
+    if (o.type === "market") { const r = this.fill(o, px); this.bracket(o, px); return r; } this.open.push(o); this.save(); return null; },
+  bracket(o, px) { if (o.sl) this.open.push({ id: o.id + "s", sym: o.sym, side: o.side === "BUY" ? "SELL" : "BUY", type: "stop", stop: o.sl, qty: o.qty, plat: o.plat, oco: o.id + "t", t: Date.now() });
+    if (o.tp) this.open.push({ id: o.id + "t", sym: o.sym, side: o.side === "BUY" ? "SELL" : "BUY", type: "limit", limit: o.tp, qty: o.qty, plat: o.plat, oco: o.id + "s", t: Date.now() }); this.save(); },
+  cancel(id) { this.open = this.open.filter(o => o.id !== id); this.save(); },
+  check() { let n = 0; this.open.slice().forEach(o => { const px = this.last(o.sym); if (!px) return; const hit = o.type === "limit" ? (o.side === "BUY" ? px <= o.limit : px >= o.limit) : o.type === "stop" ? (o.side === "BUY" ? px >= o.stop : px <= o.stop) : false;
+      if (hit) { this.fill(o, o.type === "limit" ? o.limit : px); this.open = this.open.filter(x => x.id !== o.id && x.id !== o.oco); if (!o.oco) this.bracket(o, px); n++; } }); if (n) { this.save(); toast(n + " practice order" + (n > 1 ? "s" : "") + " filled."); } return n; },
+  pos(s) { let q = 0, cost = 0; D.journal.filter(t => !t.live && t.sym === s).forEach(t => { const qty = t.qty || t.usd / t.px; if (t.side === "BUY") { cost += qty * t.px; q += qty; } else { if (q > 0) cost -= cost / q * Math.min(qty, q); q -= qty; } });
+    const px = this.last(s), avg = q > 1e-12 ? cost / q : 0; return { q, avg, px, pnl: q > 1e-12 && px ? (px - avg) * q : 0 }; },
+  cash() { let c = (U() && U().cfg && +U().cfg.practice) || 10000; D.journal.filter(t => !t.live).forEach(t => { c += (t.side === "BUY" ? -1 : 1) * (t.qty ? t.qty * t.px : t.usd) - (t.qty ? t.qty * t.px : t.usd) * .006; }); return c; }
 };
 
+/* ---------------- Pro Chart full screen (the main chart) ---------------- */
+const CHART = window.DNA_CHART = {
+  el: null, pc: null,
+  open() { if (this.el) return; const w = document.createElement("div"); w.className = "dna dna-chartfs"; w.setAttribute("role", "dialog"); w.setAttribute("aria-label", "Main chart"); document.body.append(w); this.el = w;
+    this.pc = window.ProChart(w, { sym: D.sym + "-USD", tf: D.tf, tfs: TFS.map(t => t[0]), onTf: tf => { D.tf = tf; saveSt(); refresh(); }, onClose: () => MODES.dash() });
+    this.pc.setBars(D.bars, D.sym + "-USD", D.tf); },
+  update() { if (this.pc) this.pc.setBars(D.bars, D.sym + "-USD", D.tf); },
+  close() { if (this.pc) this.pc.destroy(); if (this.el) this.el.remove(); this.el = this.pc = null; }
+};
+
+/* ---------------- Simulation mode: practice on the layout of the broker you really use ----------------
+   Same demo (or live) prices, paper money only. Each layout mirrors its platform: where the chart, order book,
+   ticket and positions sit, and the steps to place a trade there. The 16th DNA coach strip stays at the bottom. */
+const SIM = window.DNA_SIM = {
+  el: null, plat: load("dna_sim_plat", ""), side: "BUY", type: "market", step: 0, pc: null, tab: "orders",
+  PL: {
+    cb: { n: "Coinbase Advanced", d: "Advanced trade · clean, rounded", pal: ["#0052ff", "#3773f5", "#27ad75", "#f0616d", "#0a0b0d", "#ffffff"], bg: "#0a0b0d", bg2: "#141519", line: "#26282d", txt: "#ffffff", mut: "#8a919e", up: "#27ad75", dn: "#f0616d", acc: "#3773f5", font: "Inter, system-ui, sans-serif",
+      steps: ["Order book: buyers (green) under the price, sellers (red) above it.", "In the ticket pick Buy, then Market or Limit.", "Type the amount in USD and set your stop before you enter.", "Press Review, read the fee, then confirm."] },
+    tv: { n: "TradingView", d: "Supercharts · thin borders", pal: ["#2962ff", "#131722", "#26a69a", "#ef5350", "#2a2e39", "#d1d4dc"], bg: "#131722", bg2: "#1e222d", line: "#2a2e39", txt: "#d1d4dc", mut: "#787b86", up: "#26a69a", dn: "#ef5350", acc: "#2962ff", font: "-apple-system, 'Trebuchet MS', system-ui, sans-serif",
+      steps: ["Use the left toolbar to draw support and resistance.", "Switch candle timeframes in the top bar.", "Add indicators with ƒx Indicators.", "Place your order in the trading panel at the bottom."] },
+    wb: { n: "Webull Desktop", d: "Desktop · green/red, dense", pal: ["#1e9bff", "#02c076", "#f6465d", "#0b0e14", "#141a24", "#eef2f7"], bg: "#0b0e14", bg2: "#141a24", line: "#1f2633", txt: "#eef2f7", mut: "#7d8799", up: "#02c076", dn: "#f6465d", acc: "#1e9bff", font: "Arial, system-ui, sans-serif",
+      steps: ["Pick a symbol in the watchlist.", "Read Level 2: who's buying vs selling.", "Limit means you set the price; pick Quantity and Day.", "Your open trades show under Positions."] },
+    mt: { n: "MetaTrader 5", d: "MT5 terminal · square, Tahoma", pal: ["#00e676", "#ffffff", "#4caf50", "#000000", "#1d5fd0", "#d02a2a"], bg: "#000000", bg2: "#f0f0f0", line: "#a0a0a0", txt: "#000000", mut: "#555555", up: "#00b050", dn: "#d02a2a", acc: "#1d5fd0", font: "Tahoma, Verdana, sans-serif", light: true,
+      steps: ["Pick your pair in Market Watch.", "Lot size = how big your trade is.", "Use one-click SELL / BUY on the chart.", "Open trades and profit show in the Terminal (Trade tab)."] },
+    tos: { n: "thinkorswim", d: "Trade tab · gray & gold", pal: ["#f5b301", "#00b84a", "#e02020", "#0a0a0a", "#3a3a3a", "#e8e8e8"], bg: "#0a0a0a", bg2: "#1b1b1b", line: "#3a3a3a", txt: "#e8e8e8", mut: "#9a9a9a", up: "#00b84a", dn: "#e02020", acc: "#f5b301", font: "Arial, system-ui, sans-serif",
+      steps: ["Check your account and positions on the left.", "Click Bid or Ask on the quote to start an order.", "Fill Order Entry: side, quantity, price, type, TIF.", "Press Confirm and Send, then review."] },
+    nt: { n: "NinjaTrader", d: "Chart Trader + SuperDOM", pal: ["#f58220", "#32cd32", "#ff2a2a", "#000000", "#1f5fbf", "#f0f0f0"], bg: "#000000", bg2: "#14171c", line: "#2b2f36", txt: "#f0f0f0", mut: "#9aa3ad", up: "#32cd32", dn: "#ff2a2a", acc: "#f58220", font: "'Segoe UI', system-ui, sans-serif",
+      steps: ["SuperDOM: click a price in the Buy or Sell column to place a limit.", "Chart Trader: Buy Mkt / Sell Mkt are instant, so be careful.", "The ATM strategy adds an auto stop and target.", "Close flattens your position."] }
+  },
+  open() { this.close(); const w = document.createElement("div"); w.className = "dna dna-sim"; w.setAttribute("role", "dialog"); w.setAttribute("aria-label", "Platform simulations"); this.el = w; document.body.append(w); if (!this.PL[this.plat]) this.plat = ""; this.render(); },
+  close() { if (this.pc) { this.pc.destroy(); this.pc = null; } if (this.el) { this.el.remove(); this.el = null; } },
+  pick(k) { if (!this.PL[k]) return; this.plat = k; store("dna_sim_plat", k); this.step = 0; this.type = k === "cb" || k === "mt" ? "market" : "limit"; this.render(); },
+  adv(i) { if (i + 1 > this.step) { this.step = i + 1; this.renderCoach(); } },
+  render() { const w = this.el; if (!w) return; if (this.pc) { this.pc.destroy(); this.pc = null; }
+    if (!this.PL[this.plat]) { const IMG = window.DNA_SIMIMG || {};
+      w.style.cssText = ""; w.innerHTML = `<div class="sim-pick"><div class="sim-ph"><h2>PLATFORM SIMULATIONS</h2><button type="button" class="dna-x" data-sx="close" aria-label="Back to the dashboard">✕ DASHBOARD</button></div>
+        <p>Practice on a screen laid out like the broker you'll really use. Your 16th DNA coach stays with you; only the trading screen changes. Same ${live() ? "live" : "demo"} prices, paper money. These are practice layouts, not the real apps, and aren't affiliated with them.</p>
+        <div class="sim-cards">${Object.entries(this.PL).map(([k, P]) => `<button type="button" class="sim-card" data-sp="${k}" style="--pa:${P.pal[0]}">${IMG[k] ? `<img alt="" src="${IMG[k]}">` : ""}<div class="sw">${P.pal.map(c => `<b style="background:${c}"></b>`).join("")}</div><div class="t"><b>${esc(P.n)} style</b><small>${esc(P.d)}</small></div></button>`).join("")}</div></div>`;
+      w.querySelectorAll("[data-sp]").forEach(b => b.onclick = () => this.pick(b.dataset.sp)); w.querySelector('[data-sx="close"]').onclick = () => MODES.dash(); return; }
+    const k = this.plat, P = this.PL[k];
+    w.style.cssText = `--sb:${P.bg};--sb2:${P.bg2};--sl:${P.line};--st:${P.txt};--sm:${P.mut};--su:${P.up};--sd:${P.dn};--sa:${P.acc};--sf:${P.font}`;
+    w.innerHTML = `<div class="sim-app2 plat-${k}">${this.L[k].call(this)}</div><div class="sim-coach" id="simCoach"></div>`;
+    const host = w.querySelector(".sim-chart"); if (host && window.ProChart) { this.pc = window.ProChart(host, { compact: k !== "tv", sym: D.sym + "-USD", tf: D.tf, tfs: TFS.map(t => t[0]), theme: { bg: P.light ? "#ffffff" : P.bg, grid: P.light ? "rgba(0,0,0,.08)" : "rgba(255,255,255,.06)", txt: P.light ? "#000" : P.txt, dim: P.mut, up: P.up, dn: P.dn, acc: P.acc, cross: P.light ? "rgba(0,0,0,.4)" : "rgba(255,255,255,.4)" },
+      onTf: tf => { D.tf = tf; saveSt(); this.adv(k === "tv" ? 1 : 0); refresh().then(() => this.update()); } }); this.pc.setBars(D.bars, D.sym + "-USD", D.tf); }
+    this.wire(); this.renderCoach(); this.update(); if (!D.book) loadBook().then(() => this.update()); },
+  renderCoach() { const c = this.el && this.el.querySelector("#simCoach"); if (!c || !this.PL[this.plat]) return; const P = this.PL[this.plat];
+    c.innerHTML = `<b class="sc-b">16TH DNA COACH</b><span class="sc-l">learning <b>${esc(P.n)}</b> style · practice · paper money</span><span class="sc-sig ${CO.sig}">${CO.sig}</span><ol>${P.steps.map((s, i) => `<li class="${i < this.step ? "ok" : i === this.step ? "now" : ""}">${esc(s)}</li>`).join("")}</ol><span class="sc-sp"></span><button type="button" data-sx="switch">Switch platform</button><button type="button" data-sx="exit">Exit simulation</button>`;
+    c.querySelector('[data-sx="switch"]').onclick = () => { this.plat = ""; store("dna_sim_plat", ""); this.render(); }; c.querySelector('[data-sx="exit"]').onclick = () => MODES.dash(); },
+  /* live parts refreshed on every tick */
+  update() { const w = this.el; if (!w || !this.PL[this.plat]) return; const last = PAPER.last(D.sym), bk = D.book, p0 = D.prods[D.sym] || {};
+    if (this.pc) this.pc.setBars(D.bars, D.sym + "-USD", D.tf);
+    w.querySelectorAll("[data-live=px]").forEach(e => e.textContent = fmt(last)); w.querySelectorAll("[data-live=ch]").forEach(e => { e.textContent = pctS(p0.ch); e.className = (p0.ch || 0) < 0 ? "d" : "u"; });
+    w.querySelectorAll("[data-live=bid]").forEach(e => e.textContent = bk && bk.bids && bk.bids[0] ? fmt(+bk.bids[0].price) : fmt(last));
+    w.querySelectorAll("[data-live=ask]").forEach(e => e.textContent = bk && bk.asks && bk.asks[0] ? fmt(+bk.asks[0].price) : fmt(last));
+    const book = w.querySelector("[data-live=book]"); if (book && bk && bk.asks) { const n = this.plat === "nt" ? 0 : 9, mx = Math.max(...bk.asks.slice(0, 9).concat(bk.bids.slice(0, 9)).map(r => +r.size)) || 1, row = (r, s) => `<div class="bk ${s}" style="--w:${(+r.size / mx * 100).toFixed(0)}%"><span>${fmt(+r.price)}</span><span>${(+r.size).toFixed(4)}</span><span>${(+r.size * +r.price).toFixed(0)}</span></div>`;
+      book.innerHTML = bk.asks.slice(0, n).reverse().map(r => row(r, "a")).join("") + `<div class="bk m"><span data-live2>${fmt(last)}</span><span>spread ${bk.asks[0] && bk.bids[0] ? fmt(+bk.asks[0].price - +bk.bids[0].price) : "—"}</span></div>` + bk.bids.slice(0, n).map(r => row(r, "b")).join(""); }
+    const dom = w.querySelector("[data-live=dom]"); if (dom && last) { const tick = last > 1000 ? 5 : last > 10 ? .05 : .0005, c0 = Math.round(last / tick) * tick, rows = []; for (let j = 12; j >= -12; j--) { const pr = c0 + j * tick, o = PAPER.open.filter(o => o.sym === D.sym && Math.abs((o.limit || o.stop) - pr) < tick / 2);
+        rows.push(`<div class="dm ${j === 0 ? "c" : ""}"><button type="button" data-dom="BUY" data-p="${pr}">${o.filter(x => x.side === "BUY").map(x => (x.qty).toFixed(4)).join(" ") || ""}</button><span>${fmt(pr)}</span><button type="button" data-dom="SELL" data-p="${pr}">${o.filter(x => x.side === "SELL").map(x => (x.qty).toFixed(4)).join(" ") || ""}</button></div>`); } dom.innerHTML = rows.join(""); dom.querySelectorAll("[data-dom]").forEach(b => b.onclick = () => this.domClick(b.dataset.dom, +b.dataset.p)); }
+    const wl = w.querySelector("[data-live=watch]"); if (wl) { wl.innerHTML = WATCH.map(s => { const p = D.prods[s] || {}; return `<button type="button" data-ws="${s}" class="${s === D.sym ? "on" : ""}"><b>${s}${this.plat === "mt" ? "USD" : this.plat === "tv" ? "USD" : ""}</b><span>${fmt(p.p)}</span><i class="${(p.ch || 0) < 0 ? "d" : "u"}">${pctS(p.ch)}</i></button>`; }).join(""); wl.querySelectorAll("[data-ws]").forEach(b => b.onclick = () => { setSym(b.dataset.ws); this.adv(0); }); }
+    const tb = w.querySelector("[data-live=table]"); if (tb) tb.innerHTML = this.table();
+    const acct = w.querySelector("[data-live=acct]"); if (acct) { const ps = WATCH.map(s => PAPER.pos(s)).reduce((a, p) => a + (p.q > 0 && p.px ? p.q * p.px : 0), 0), pnl = WATCH.map(s => PAPER.pos(s)).reduce((a, p) => a + p.pnl, 0), cash = PAPER.cash();
+      acct.innerHTML = this.plat === "mt" ? `Balance: <b>${fmt(cash + ps - pnl, 2)}</b> USD &nbsp; Equity: <b>${fmt(cash + ps, 2)}</b> &nbsp; Free margin: <b>${fmt(cash, 2)}</b>` : `<span>Cash <b>$${fmt(cash, 2)}</b></span><span>Positions <b>$${fmt(ps, 2)}</b></span><span>P&L <b class="${pnl < 0 ? "d" : "u"}">$${fmt(pnl, 2)}</b></span>`; }
+    const av = w.querySelector("[data-live=avail]"); if (av) av.textContent = "$" + fmt(PAPER.cash(), 2);
+    const est = w.querySelector("[data-live=est]"); if (est) { const q = this.qty(); est.textContent = q ? "≈ " + q.toFixed(6) + " " + D.sym + " · fee ≈ $" + (q * (this.price() || last) * .006).toFixed(3) : ""; }
+    this.renderCoach(); },
+  table() { const tab = this.tab, O = PAPER.open, J = D.journal.filter(t => !t.live).slice(-12).reverse(), Pp = WATCH.map(s => [s, PAPER.pos(s)]).filter(([, p]) => p.q > 1e-10);
+    const tabs = [["orders", this.plat === "mt" ? "Trade" : "Open orders (" + O.length + ")"], ["pos", "Positions (" + Pp.length + ")"], ["fills", this.plat === "mt" ? "History" : "Fills"]];
+    let rows = ""; if (tab === "orders") rows = O.length ? `<tr><th>Symbol</th><th>Side</th><th>Type</th><th>Qty</th><th>Price</th><th></th></tr>` + O.map(o => `<tr><td>${o.sym}</td><td class="${o.side === "BUY" ? "u" : "d"}">${o.side}</td><td>${o.type}</td><td>${o.qty.toFixed(6)}</td><td>${fmt(o.limit || o.stop)}</td><td><button type="button" data-cx="${o.id}">Cancel</button></td></tr>`).join("") : `<tr><td>No open orders</td></tr>`;
+    else if (tab === "pos") rows = Pp.length ? `<tr><th>Symbol</th><th>Qty</th><th>Avg cost</th><th>Last</th><th>P&L</th><th></th></tr>` + Pp.map(([s, p]) => `<tr><td>${s}</td><td>${p.q.toFixed(6)}</td><td>${fmt(p.avg)}</td><td>${fmt(p.px)}</td><td class="${p.pnl < 0 ? "d" : "u"}">${p.pnl >= 0 ? "+" : ""}$${p.pnl.toFixed(2)}</td><td><button type="button" data-flat="${s}">Close</button></td></tr>`).join("") : `<tr><td>No positions</td></tr>`;
+    else rows = J.length ? `<tr><th>Time</th><th>Symbol</th><th>Side</th><th>Qty</th><th>Price</th><th>Type</th></tr>` + J.map(t => `<tr><td>${new Date(t.t).toLocaleTimeString()}</td><td>${t.sym}</td><td class="${t.side === "BUY" ? "u" : "d"}">${t.side}</td><td>${(t.qty || t.usd / t.px).toFixed(6)}</td><td>${fmt(t.px)}</td><td>${t.type || "market"}</td></tr>`).join("") : `<tr><td>No fills yet</td></tr>`;
+    return `<div class="st-tabs">${tabs.map(([k2, l]) => `<button type="button" data-tt="${k2}" aria-pressed="${tab === k2}">${l}</button>`).join("")}</div><table class="st-tb">${rows}</table>`; },
+  /* ticket fields */
+  qty() { const w = this.el, a = w && w.querySelector("[data-f=amt]"), q = w && w.querySelector("[data-f=qty]"), last = PAPER.last(D.sym); if (q) return Math.max(0, +q.value || 0) * (this.plat === "mt" ? .01 : 1); if (a && last) return Math.max(0, +a.value || 0) / (this.price() || last); return 0; },
+  price() { const w = this.el, f = w && w.querySelector("[data-f=price]"); return this.type !== "market" && f ? +f.value || null : null; },
+  async submit(side, over) { side = side || this.side; const q = over && over.qty || this.qty(), last = PAPER.last(D.sym); if (!q || !last) return toast("Enter an amount first.");
+    const type = over && over.type || this.type, px = over && over.price || this.price(), w = this.el, sl = w && +((w.querySelector("[data-f=sl]") || {}).value || 0), tp = w && +((w.querySelector("[data-f=tp]") || {}).value || 0);
+    if (type !== "market" && !px) return toast("Enter a price for a " + type + " order.");
+    const msg = "Practice order (paper money) · " + this.PL[this.plat].n + " style\n\n" + side + " " + q.toFixed(6) + " " + D.sym + " · " + type.toUpperCase() + (type !== "market" ? " @ " + fmt(px) : " (~" + fmt(last) + ")") + (sl ? "\nStop loss " + fmt(sl) : "") + (tp ? "\nTake profit " + fmt(tp) : "") + "\nFee ≈ $" + (q * (px || last) * .006).toFixed(3) + (CO.sig !== "WAIT" && CO.sig !== side ? "\n\nHeads up: the coach says " + CO.sig + "." : "");
+    if (!(over && over.instant) && !(await window.xviConfirm(msg, "Confirm practice order"))) return;
+    try { const o = { sym: D.sym, side, type, qty: q, plat: this.plat }; if (type === "limit") o.limit = px; if (type === "stop") o.stop = px; if (sl) o.sl = sl; if (tp) o.tp = tp; const r = PAPER.place(o);
+      toast(r ? "Practice order filled at " + fmt(r.px) + "." : "Practice " + type + " order working at " + fmt(px) + "."); this.adv(3); const done = new Set(load("dna_sim_plats", [])); done.add(this.plat); store("dna_sim_plats", [...done]); store("dna_sim_done", done.size); this.tab = r ? "pos" : "orders"; this.update(); repaint(); }
+    catch (e) { toast("Order failed: " + e.message); } },
+  domClick(side, pr) { const last = PAPER.last(D.sym), type = side === "BUY" ? (pr <= last ? "limit" : "stop") : (pr >= last ? "limit" : "stop"), q = this.qty() || (D.size / last); this.adv(0); this.submit(side, { qty: q, type, price: pr }); },
+  flatten(s) { const p = PAPER.pos(s); if (p.q <= 1e-10) return; if (s !== D.sym) setSym(s); this.submit("SELL", { qty: p.q, type: "market" }); },
+  wire() { const w = this.el;
+    w.addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; const Dd = b.dataset;
+      if (Dd.side) { this.side = Dd.side; w.querySelectorAll("[data-side]").forEach(x => x.setAttribute("aria-pressed", String(x.dataset.side === this.side))); const go = w.querySelector("[data-go]"); if (go) { go.textContent = (this.plat === "cb" ? "Review " : "") + this.side + " " + D.sym; go.className = "sim-go2 " + (this.side === "BUY" ? "b" : "s"); } this.adv(this.plat === "cb" ? 1 : 2); }
+      else if (Dd.otype) { this.type = Dd.otype; w.querySelectorAll("[data-otype]").forEach(x => x.setAttribute("aria-pressed", String(x.dataset.otype === this.type))); const pf = w.querySelector(".sim-pf"); if (pf) pf.hidden = this.type === "market"; this.adv(this.plat === "wb" ? 2 : 1); this.update(); }
+      else if (Dd.go != null) this.submit();
+      else if (Dd.oneclick) this.submit(Dd.oneclick, { instant: false, type: "market" });
+      else if (Dd.mkt) this.submit(Dd.mkt, { type: "market" });
+      else if (Dd.ba) { const bk = D.book, pr = Dd.ba.endsWith("ask") ? (bk && bk.asks[0] ? +bk.asks[0].price : PAPER.last(D.sym)) : (bk && bk.bids[0] ? +bk.bids[0].price : PAPER.last(D.sym)); this.submit(Dd.ba.startsWith("buy") ? "BUY" : "SELL", { type: "limit", price: pr }); }
+      else if (Dd.quote) { this.side = Dd.quote; this.type = "limit"; const pf = w.querySelector("[data-f=price]"); if (pf) pf.value = (Dd.quote === "BUY" ? (w.querySelector("[data-live=ask]") || {}).textContent : (w.querySelector("[data-live=bid]") || {}).textContent || "").replace(/,/g, ""); w.querySelectorAll("[data-side]").forEach(x => x.setAttribute("aria-pressed", String(x.dataset.side === this.side))); this.adv(1); }
+      else if (Dd.flatall != null) { WATCH.forEach(s => { if (PAPER.pos(s).q > 1e-10 && s === D.sym) this.flatten(s); }); }
+      else if (Dd.rev != null) { const p = PAPER.pos(D.sym); if (p.q > 1e-10) this.submit("SELL", { qty: p.q * 2, type: "market" }); else toast("No position to reverse."); }
+      else if (Dd.tt) { this.tab = Dd.tt; this.update(); } else if (Dd.cx) { PAPER.cancel(Dd.cx); this.update(); } else if (Dd.flat) this.flatten(Dd.flat);
+      else if (Dd.full != null) { MODES.chart(); } });
+    w.addEventListener("input", e => { if (e.target.dataset.f) { this.adv(this.plat === "mt" ? 1 : 2); this.update(); } }); },
+  /* the six layouts */
+  L: {
+    cb() { return `<header class="cb-h"><b class="cb-pair">${D.sym}-USD ▾</b><div class="cb-st"><span><small>Last price</small><b data-live="px"></b></span><span><small>24h change</small><b data-live="ch"></b></span><span><small>Mode</small><b>Practice</b></span></div><span class="tag">Coinbase Advanced-style practice</span></header>
+      <div class="cb-g"><section class="pnl"><h4>Order book</h4><div class="bk h"><span>Price (USD)</span><span>Amount</span><span>Total</span></div><div data-live="book" class="book"></div></section>
+      <section class="pnl chartp"><div class="sim-chart"></div></section>
+      <section class="pnl tk"><h4>Order ticket</h4><div class="seg"><button type="button" data-side="BUY" aria-pressed="${this.side === "BUY"}">Buy</button><button type="button" data-side="SELL" aria-pressed="${this.side === "SELL"}">Sell</button></div>
+        <div class="seg2">${["market", "limit", "stop"].map(t => `<button type="button" data-otype="${t}" aria-pressed="${this.type === t}">${t[0].toUpperCase() + t.slice(1)}</button>`).join("")}</div>
+        <label class="sim-pf" ${this.type === "market" ? "hidden" : ""}>Price<input data-f="price" type="number" step="any" value="${fmt(PAPER.last(D.sym), 2).replace(/,/g, "")}"></label>
+        <label>Amount (USD)<input data-f="amt" type="number" min="1" step="1" value="${D.size}"></label><label>Stop loss (optional)<input data-f="sl" type="number" step="any" placeholder="${CO.plan ? fmt(CO.plan.stop, 2).replace(/,/g, "") : ""}"></label>
+        <p class="kv"><span>Available</span><b data-live="avail"></b></p><p class="kv"><span>Estimate</span><b data-live="est"></b></p><button type="button" class="sim-go2 ${this.side === "BUY" ? "b" : "s"}" data-go>Review ${this.side} ${D.sym}</button></section>
+      <section class="pnl bot" data-live="table"></section></div>`; },
+    tv() { return `<header class="tv-h"><b>${D.sym}USD</b><span data-live="px" class="big"></span><span data-live="ch"></span><span class="tag">TradingView-style practice</span></header>
+      <div class="tv-g"><section class="chartp"><div class="sim-chart"></div></section><aside class="tv-r"><h4>Watchlist</h4><div class="wl-h"><span>Symbol</span><span>Last</span><span>Chg%</span></div><div data-live="watch" class="wl"></div><div class="tv-d"><b>${D.sym}USD</b><span data-live="px"></span><small>Crypto · demo feed</small></div></aside>
+      <section class="tv-b"><div class="tv-tp"><b>Trading panel</b><span>Paper trading</span></div><div class="tv-row">${["market", "limit", "stop"].map(t => `<button type="button" data-otype="${t}" aria-pressed="${this.type === t}">${t[0].toUpperCase() + t.slice(1)}</button>`).join("")}
+        <label class="sim-pf" ${this.type === "market" ? "hidden" : ""}>Price<input data-f="price" type="number" step="any" value="${fmt(PAPER.last(D.sym), 2).replace(/,/g, "")}"></label><label>Quantity<input data-f="qty" type="number" step="any" min="0" value="${(D.size / (PAPER.last(D.sym) || 1)).toFixed(6)}"></label><label>Take profit<input data-f="tp" type="number" step="any"></label><label>Stop loss<input data-f="sl" type="number" step="any"></label>
+        <button type="button" class="sim-go2 b" data-mkt="BUY">Buy</button><button type="button" class="sim-go2 s" data-mkt="SELL">Sell</button></div><div data-live="table"></div></section></div>`; },
+    wb() { return `<div class="wb-g"><nav class="wb-n">${["★", "▤", "◷", "⚑", "☰"].map(c => `<span>${c}</span>`).join("")}</nav><aside class="wb-l"><h4>Watchlists</h4><div data-live="watch" class="wl"></div></aside>
+      <section class="wb-c"><header class="wb-h"><b>${D.sym}</b><span data-live="px" class="big"></span><span data-live="ch"></span><span class="tag">Webull-style practice</span></header><div class="sim-chart"></div><div data-live="table" class="wb-t"></div></section>
+      <aside class="wb-r"><h4>Level 2</h4><div class="bk h"><span>Price</span><span>Size</span><span>Value</span></div><div data-live="book" class="book"></div>
+        <h4>Order ticket</h4><div class="seg"><button type="button" data-side="BUY" aria-pressed="${this.side === "BUY"}">Buy</button><button type="button" data-side="SELL" aria-pressed="${this.side === "SELL"}">Sell</button></div>
+        <label>Order type<span class="seg2">${["limit", "market", "stop"].map(t => `<button type="button" data-otype="${t}" aria-pressed="${this.type === t}">${t[0].toUpperCase() + t.slice(1)}</button>`).join("")}</span></label>
+        <label class="sim-pf" ${this.type === "market" ? "hidden" : ""}>Price<input data-f="price" type="number" step="any" value="${fmt(PAPER.last(D.sym), 2).replace(/,/g, "")}"></label><label>Quantity<input data-f="qty" type="number" step="any" min="0" value="${(D.size / (PAPER.last(D.sym) || 1)).toFixed(6)}"></label><label>Time-in-force<select><option>Day</option><option>GTC</option></select></label>
+        <p class="kv"><span>Est.</span><b data-live="est"></b></p><button type="button" class="sim-go2 ${this.side === "BUY" ? "b" : "s"}" data-go>${this.side} ${D.sym}</button></aside></div>`; },
+    mt() { return `<div class="mt-menu">${["File", "View", "Insert", "Charts", "Tools", "Window", "Help"].map(m => `<span>${m}</span>`).join("")}<span class="tag">MetaTrader 5-style practice · Demo account</span></div><div class="mt-tb">${["M1", "M5", "M15", "M30", "H1", "D1"].map(t => `<span>${t}</span>`).join("")}</div>
+      <div class="mt-g"><aside class="mt-l"><div class="mt-cap">Market Watch</div><div class="wl-h"><span>Symbol</span><span>Bid</span><span>Chg</span></div><div data-live="watch" class="wl"></div><div class="mt-cap">Navigator</div><ul class="mt-nav"><li>📁 Accounts · Demo</li><li>📁 Indicators</li><li>📁 Expert Advisors</li><li>📁 Scripts</li></ul></aside>
+      <section class="mt-c"><div class="mt-cap">${D.sym}USD, ${D.tf.toUpperCase()}</div><div class="mt-oc"><button type="button" data-oneclick="SELL"><small>SELL</small><b data-live="bid"></b></button><label>Lot<input data-f="qty" type="number" step="0.01" min="0.01" value="0.10"></label><button type="button" data-oneclick="BUY"><small>BUY</small><b data-live="ask"></b></button></div><div class="sim-chart"></div></section></div>
+      <section class="mt-term"><div class="mt-cap">Terminal</div><div data-live="table"></div><div class="mt-bal" data-live="acct"></div></section>`; },
+    tos() { return `<div class="tos-tabs">${["Monitor", "Trade", "Analyze", "Scan", "MarketWatch", "Charts"].map((t, i) => `<span class="${i === 1 ? "on" : ""}">${t}</span>`).join("")}<span class="tag">thinkorswim-style practice · paperMoney</span></div>
+      <div class="tos-g"><aside class="tos-l"><h4>Account info</h4><div data-live="acct" class="tos-ac"></div><h4>Watchlist</h4><div data-live="watch" class="wl"></div></aside>
+      <section class="tos-c"><div class="tos-q"><b>${D.sym}</b><span>Last <b data-live="px"></b></span><span data-live="ch"></span><button type="button" data-quote="SELL">Bid <b data-live="bid"></b></button><button type="button" data-quote="BUY">Ask <b data-live="ask"></b></button></div><div class="sim-chart"></div>
+        <div class="tos-oe"><b>Order Entry</b><span class="seg"><button type="button" data-side="BUY" aria-pressed="${this.side === "BUY"}">BUY</button><button type="button" data-side="SELL" aria-pressed="${this.side === "SELL"}">SELL</button></span><label>Qty<input data-f="qty" type="number" step="any" min="0" value="${(D.size / (PAPER.last(D.sym) || 1)).toFixed(6)}"></label><span>${D.sym}</span>
+          <label class="sim-pf" ${this.type === "market" ? "hidden" : ""}>Price<input data-f="price" type="number" step="any" value="${fmt(PAPER.last(D.sym), 2).replace(/,/g, "")}"></label><span class="seg2">${["limit", "market", "stop"].map(t => `<button type="button" data-otype="${t}" aria-pressed="${this.type === t}">${t.toUpperCase()}</button>`).join("")}</span><select aria-label="Time in force"><option>DAY</option><option>GTC</option></select><button type="button" class="tos-send" data-go>Confirm and Send</button></div>
+        <div data-live="table"></div></section></div>`; },
+    nt() { return `<div class="nt-menu"><b>Control Center</b>${["New", "Tools", "Workspaces", "Connections", "Help"].map(m => `<span>${m}</span>`).join("")}<span class="tag">NinjaTrader-style practice · Sim101</span></div>
+      <div class="nt-g"><section class="nt-c"><div class="nt-cap">Chart · ${D.sym}-USD (${D.tf})</div><div class="sim-chart"></div></section>
+      <aside class="nt-ct"><div class="nt-cap">Chart Trader</div><div class="nt-bs"><button type="button" class="b" data-mkt="BUY">Buy Mkt</button><button type="button" class="s" data-mkt="SELL">Sell Mkt</button><button type="button" data-ba="buy-ask">Buy Ask</button><button type="button" data-ba="sell-ask">Sell Ask</button><button type="button" data-ba="buy-bid">Buy Bid</button><button type="button" data-ba="sell-bid">Sell Bid</button><button type="button" data-rev>Rev</button><button type="button" data-flatall>Close</button></div>
+        <label>Qty<input data-f="qty" type="number" step="any" min="0" value="${(D.size / (PAPER.last(D.sym) || 1)).toFixed(6)}"></label><label>TIF<select><option>GTC</option><option>Day</option></select></label><label>Account<select><option>Sim101</option></select></label>
+        <label>ATM strategy: stop loss<input data-f="sl" type="number" step="any" placeholder="${CO.plan ? fmt(CO.plan.stop, 2).replace(/,/g, "") : ""}"></label><label>ATM: profit target<input data-f="tp" type="number" step="any" placeholder="${CO.plan ? fmt(CO.plan.target, 2).replace(/,/g, "") : ""}"></label><p class="kv"><span>Position</span><b data-live="acct"></b></p></aside>
+      <aside class="nt-dom"><div class="nt-cap">SuperDOM · ${D.sym}</div><div class="dm h"><span>Buy</span><span>Price</span><span>Sell</span></div><div data-live="dom" class="dom"></div></aside>
+      <section class="nt-t" data-live="table"></section></div>`; }
+  }
+};
 /* ---------------- boot ---------------- */
 function bar() {
   const b = document.createElement("div"); b.id = "dnaModes"; b.className = "dna"; b.setAttribute("role", "group"); b.setAttribute("aria-label", "Desk mode");
-  b.innerHTML = `<span class="dna-brand">16TH DNA</span>${[["dash", "DASHBOARD"], ["full", "FULL SCREEN"], ["sim", "SIMULATION"]].map(([m, l]) => `<button type="button" data-mode="${m}" aria-pressed="${m === "dash"}">${l}</button>`).join("")}<button type="button" data-act="dev">DEV</button>`;
+  b.innerHTML = `<span class="dna-brand">16TH DNA</span>${[["dash", "DASHBOARD"], ["chart", "CHART"], ["full", "FULL SCREEN"], ["sim", "SIMULATION"]].map(([m, l]) => `<button type="button" data-mode="${m}" aria-pressed="${m === "dash"}">${l}</button>`).join("")}<button type="button" data-act="dev">DEV</button>`;
   b.addEventListener("click", e => { const x = e.target.closest("button"); if (!x) return; if (x.dataset.mode) MODES[x.dataset.mode](); else MODES.dev(); });
   document.body.append(b);
   const ex = document.createElement("button"); ex.type = "button"; ex.id = "dnaExit"; ex.className = "dna"; ex.textContent = "⤢"; ex.setAttribute("aria-label", "Leave full screen"); ex.onclick = () => MODES.dash(); document.body.append(ex);

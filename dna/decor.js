@@ -59,30 +59,40 @@ function start() {
 
   /* ---- bull and bear holograms on pedestals, either side of the desk ---- */
   const ld = new THREE.TextureLoader();
-  function beast(src, deg, w, h, flip) { const grp = new THREE.Group(); grp.position.copy(front(deg, 4.7, .75)); G.add(grp);
-    const ped = new THREE.Mesh(new THREE.CylinderGeometry(.85, .95, .16, 64), new THREE.MeshStandardMaterial({ color: 0x0a1a3c, metalness: .6, roughness: .35, emissive: 0x06173a }));
-    ped.position.y = .55; grp.add(ped); [0, 1].forEach(i => { const r = new THREE.Mesh(new THREE.TorusGeometry(.9 - i * .25, .014, 8, 96), glowMat(i ? 0x4fc8ff : 0xffb43a)); r.rotation.x = PI / 2; r.position.y = .64 + i * .002; grp.add(r); });
+  function beast(src, deg, w, h, flip) { const grp = new THREE.Group(); grp.position.copy(front(deg, 3.05, .25)); G.add(grp);
+    const ped = new THREE.Mesh(new THREE.CylinderGeometry(.5, .56, .1, 48), new THREE.MeshStandardMaterial({ color: 0x0a1a3c, metalness: .6, roughness: .35, emissive: 0x06173a }));
+    ped.position.y = .55; grp.add(ped); [0, 1].forEach(i => { const r = new THREE.Mesh(new THREE.TorusGeometry(.54 - i * .16, .01, 8, 96), glowMat(i ? 0x4fc8ff : 0xffb43a)); r.rotation.x = PI / 2; r.position.y = .64 + i * .002; grp.add(r); });
     const col = new THREE.Mesh(new THREE.CylinderGeometry(.08, .14, 1.3, 16), new THREE.MeshStandardMaterial({ color: 0x0a1a3c, metalness: .7, roughness: .3 })); col.position.y = -.1; grp.add(col);
-    const beam = new THREE.Mesh(new THREE.CylinderGeometry(.8, .9, h * .9, 48, 1, true), new THREE.MeshBasicMaterial({ color: 0x2f9bff, transparent: true, opacity: .07, blending: add, depthWrite: false, side: THREE.DoubleSide })); beam.position.y = .64 + h * .45; grp.add(beam);
+    const beam = new THREE.Mesh(new THREE.CylinderGeometry(.48, .54, h * .9, 48, 1, true), new THREE.MeshBasicMaterial({ color: 0x2f9bff, transparent: true, opacity: .07, blending: add, depthWrite: false, side: THREE.DoubleSide })); beam.position.y = .64 + h * .45; grp.add(beam);
     const t = ld.load(src); if ("encoding" in t) t.encoding = THREE.sRGBEncoding;
     const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ map: t, transparent: true, blending: add, depthWrite: false, side: THREE.DoubleSide }));
     if (flip) m.scale.x = -1; m.position.y = .66 + h / 2; m.renderOrder = 31; grp.add(m); grp.lookAt(0, 0, .15); grp.rotation.y += 0; return { grp, m, y0: m.position.y }; }
-  const bull = beast(BULL, -70, 2.3, 1.9, false), bear = beast(BEAR, 70, 2.3, 1.8, false);
+  const bull = beast(BULL, -84, 1.15, .95, false), bear = beast(BEAR, 84, 1.15, .9, false);
 
   /* ---- server walls on the sides and behind the chair ---- */
   const scv = mk(128, 512), stex = texOf(scv); stex.wrapT = THREE.RepeatWrapping;
   (function paintRack() { const g = scv.getContext("2d"); g.fillStyle = "#020814"; g.fillRect(0, 0, 128, 512); for (let u = 0; u < 32; u++) { const y = u * 16; g.fillStyle = "#06132c"; g.fillRect(6, y + 2, 116, 12); g.fillStyle = "#0b2350"; g.fillRect(6, y + 2, 116, 2);
-      for (let l = 0; l < 10; l++) { const r = (u * 7 + l * 13) % 11; g.fillStyle = r < 6 ? "#3fb8ff" : r < 8 ? "#7fe3ff" : r < 9 ? "#2ee6a8" : r < 10 ? "#ffc14d" : "#0d2a55"; g.fillRect(14 + l * 10, y + 7, 5, 3); } } stex.needsUpdate = true; })();
+      for (let l = 0; l < 10; l++) { const r = (u * 7 + l * 13) % 11; g.fillStyle = r < 3 ? "#2a7fc0" : r < 4 ? "#5fb8e0" : r < 5 ? "#1f9e78" : r < 6 ? "#b8902f" : "#0a2048"; g.fillRect(14 + l * 10, y + 7, 5, 3); } } stex.needsUpdate = true; })();
   const rackM = new THREE.MeshBasicMaterial({ map: stex }), rackSide = new THREE.MeshStandardMaterial({ color: 0x050d1f, metalness: .7, roughness: .4 });
   const rackGeo = new THREE.BoxGeometry(.78, 3.6, .7), trim = glowMat(0x2f9bff);
-  for (let deg = 104; deg <= 256; deg += 9.5) { const r = 5.0, p = front(deg, r, 1.8), b = new THREE.Mesh(rackGeo, [rackSide, rackSide, rackSide, rackSide, rackM, rackSide]); b.position.copy(p); b.lookAt(0, 1.8, 0); G.add(b);
-    const tr = new THREE.Mesh(new THREE.BoxGeometry(.8, .025, .02), trim); tr.position.copy(front(deg, r - .36, 3.62)); tr.lookAt(0, 3.62, 0); G.add(tr); }
+  const racks = new THREE.Group(); G.add(racks);
+  for (let deg = 104; deg <= 256; deg += 9.5) { const r = 5.0, p = front(deg, r, 1.8), b = new THREE.Mesh(rackGeo, [rackSide, rackSide, rackSide, rackSide, rackM, rackSide]); b.position.copy(p); b.lookAt(0, 1.8, 0); racks.add(b);
+    const tr = new THREE.Mesh(new THREE.BoxGeometry(.8, .025, .02), trim); tr.position.copy(front(deg, r - .36, 3.62)); tr.lookAt(0, 3.62, 0); racks.add(tr); }
   const floorRing = new THREE.Mesh(new THREE.TorusGeometry(4.6, .02, 8, 160, PI * .85), glowMat(0x2f9bff)); floorRing.rotation.x = PI / 2; floorRing.rotation.z = PI * .575; floorRing.position.y = .02; G.add(floorRing);
 
   /* show / hide pieces (Settings → Room) */
-  const PARTS = { beasts: [bull.grp, bear.grp], clocks: clocks.map(k => k.m), news: [band], coin: [coin] };
-  const vis = (() => { try { return Object.assign({ beasts: true, clocks: true, news: true, coin: true }, JSON.parse(localStorage.getItem("dna_decor") || "{}")); } catch (e) { return { beasts: true, clocks: true, news: true, coin: true }; } })();
-  const apply = () => Object.keys(PARTS).forEach(k => PARTS[k].forEach(o => { o.visible = vis[k] !== false; }));
+  const holo = window.__hxHolo || null;
+  const PARTS = { beasts: [bull.grp, bear.grp], clocks: clocks.map(k => k.m), news: [band], coin: [coin], racks: [racks], stations: holo ? [holo] : [] };
+  const DEF = { beasts: true, clocks: true, news: true, coin: true, racks: true, stations: false };
+  const vis = (() => { try { return Object.assign({}, DEF, JSON.parse(localStorage.getItem("dna_decor") || "{}")); } catch (e) { return Object.assign({}, DEF); } })();
+  /* pieces Dev mode can pick one by one */
+  const ITEMS = { bull: [bull.grp, "Bull hologram", "beasts"], bear: [bear.grp, "Bear hologram", "beasts"], coin: [coin, "Spinning Bitcoin", "coin"], news: [band, "News band", "news"], racks: [racks, "Server walls", "racks"] };
+  clocks.forEach((k, i) => ITEMS["clock" + i] = [k.m, k.name + " clock", "clocks"]);
+  if (holo) ITEMS.stations = [holo, "Strategy holograms (overhead)", "stations"];
+  Object.entries(ITEMS).forEach(([id, [o]]) => { o.userData.dnaDecor = id; o.userData.s0 = o.scale.clone(); o.userData.r0 = o.rotation.y; });
+  const apply = () => Object.entries(ITEMS).forEach(([id, [o, , part]]) => { const ov = (window.DNA_OVR && DNA_OVR.get("d|" + id)) || {}; o.visible = vis[part] !== false && !ov.hide;
+    const s = (ov.scale || 100) / 100; o.scale.copy(o.userData.s0).multiplyScalar(s); o.rotation.y = o.userData.r0 + (ov.rot || 0) * D2R; });
+  window.DNA_DECOR_G = G; window.DNA_DECOR_ITEMS = ITEMS; window.DNA_DECOR_APPLY = apply;
   window.DNA_DECOR = { get: k => vis[k] !== false, set: (k, on) => { vis[k] = !!on; try { localStorage.setItem("dna_decor", JSON.stringify(vis)); } catch (e) {} apply(); } }; apply();
   /* ---- animate ---- */
   let lastSec = -1, lastNews = 0;
@@ -92,7 +102,9 @@ function start() {
     bull.m.material.opacity = .82 + Math.sin(t * 7) * .04; bear.m.material.opacity = .82 + Math.sin(t * 7 + 1) * .04;
     ntex.offset.x = -(t * .012) % 1; stex.offset.y = Math.floor(t * 3) * (1 / 32) % 1;
     const s = Math.floor(Date.now() / 1000); if (s !== lastSec) { lastSec = s; clocks.forEach(drawClock); }
-    if (now - lastNews > 10000) { lastNews = now; drawNews(); } };
+    if (now - lastNews > 10000) { lastNews = now; drawNews(); }
+    if ((++fr & 31) === 0) apply(); };
+  let fr = 0;
   clocks.forEach(drawClock); drawNews();
 }
 start();
