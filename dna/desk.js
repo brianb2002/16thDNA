@@ -39,8 +39,8 @@ const live = () => { const u = U(); return !!(u && !u.practice()); };
 const call = async (tool, input) => { const u = U(); if (!u) throw new Error("Engine not ready"); const r = await u.mcp.callTool(u.CBN, tool, input); return r && (r.payload || r.structuredContent || r); };
 const num = v => v == null ? NaN : +(typeof v === "object" ? (v.value != null ? v.value : NaN) : v);
 
-async function loadBars() {
-  const r = await call("coinbase_products_candles", { product_id: D.sym + "-USD", granularity: D.tf, limit: 300 });
+async function loadBars() { const s = D.sym, tf = D.tf;
+  const r = await call("coinbase_products_candles", { product_id: s + "-USD", granularity: tf, limit: 300 }); if (s !== D.sym || tf !== D.tf) throw { stale: true };
   const cs = (r && (r.candles || r)) || [];
   D.bars = cs.map(c => ({ t: +c.start, o: +c.open, h: +c.high, l: +c.low, c: +c.close, v: +c.volume })).filter(b => isFinite(b.c)).sort((a, b) => a.t - b.t);
 }
@@ -55,10 +55,10 @@ async function loadBal() {
     D.bal = { usd: usd + usdc, usdc, coin, live: live() }; } catch (e) { D.bal = { usd: 0, coin: 0, live: false, err: e.message }; }
 }
 async function refresh(full) {
-  if (D.busy) return; D.busy = true;
+  if (D.busy) { D.again = true; return; } D.busy = true; D.again = false;
   try { await loadBars(); if (full || now() - D.lastLoad > 60000) { await loadProds(); await loadBal(); D.lastLoad = now(); } if (D.view === "book" || SIM.el || D.book === null) await loadBook(); D.err = ""; }
-  catch (e) { D.err = (e && e.message) || "No market data"; }
-  D.busy = false; computeAll(); try { PAPER.check(); } catch (e) {} repaint(); try { CHART.update(); SIM.update(); } catch (e) { console.warn("DNA update", e); }
+  catch (e) { if (!(e && e.stale)) D.err = (e && e.message) || "No market data"; else D.again = true; }
+  D.busy = false; if (D.again) { D.again = false; setTimeout(() => refresh(full), 0); } computeAll(); try { PAPER.check(); } catch (e) {} repaint(); try { CHART.update(); SIM.update(); } catch (e) { console.warn("DNA update", e); }
 }
 const repaint = () => { try { window.__HXREDRAW && window.__HXREDRAW(); } catch (e) {} };
 
