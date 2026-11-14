@@ -87,9 +87,9 @@ body.vld-editing .vld-unit{touch-action:none}
   --f-data:"Share Tech Mono",ui-monospace,Menlo,monospace;
   --dockh:56px; --toph:56px;
 }
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+@media (prefers-color-scheme:dark){:root:not([data-hx-theme="light"]){
   --bg:#01050f;--glass:rgba(5,20,54,.82);--glass-edge:rgba(80,170,255,.38);--ink:#e6f3ff;--ink-soft:#8fb3d9;--accent:#4cc3ff;--line:rgba(110,180,255,.2);--tile:rgba(20,60,130,.35);--on-ink:#03102a;--good:#35f0a0;--warn:#ffc451;--bad:#ff5c7a;--on-sem:#02130c;--shadow:rgba(0,0,0,.5);color-scheme:dark}}
-:root[data-theme="dark"]{
+:root[data-hx-theme="dark"]{
   --bg:#01050f;--glass:rgba(5,20,54,.82);--glass-edge:rgba(80,170,255,.38);--ink:#e6f3ff;--ink-soft:#8fb3d9;--accent:#4cc3ff;--line:rgba(110,180,255,.2);--tile:rgba(20,60,130,.35);--on-ink:#03102a;--good:#35f0a0;--warn:#ffc451;--bad:#ff5c7a;--on-sem:#02130c;--shadow:rgba(0,0,0,.5);color-scheme:dark}
 :root.alert{--bg:#170204;--glass:rgba(48,5,9,.86);--glass-edge:rgba(255,120,110,.45);--ink:#ffe9e4;--ink-soft:#ffb3a8;--accent:#ff5a4f;--line:rgba(255,120,110,.24);--tile:rgba(120,20,26,.4);--on-ink:#2a0306;--good:#6fe8a0;--warn:#ffc23d;--bad:#ff8a7a;--on-sem:#1a0204;--shadow:rgba(0,0,0,.5);color-scheme:dark}
 html,body{height:100%;margin:0;overflow:hidden;background:var(--bg);color:var(--ink);font-family:var(--f-body)}
@@ -4567,7 +4567,7 @@ function vlbInit() {
 }
 setTimeout(vlbInit, 0);
 window.VL_BAR = VL_BAR;
-window.VL_BAR_API = { pressure: vlbPressure, assist: vlbAssist, sync: vlbSync, riskTap: vlbRiskTap, riskState: () => ({ alert: ALERT, vis: vis(), scene: SCENE, day: acctDay(), mode: RISK.mode, theme: root.dataset.theme || '' }), armBuy: vlbArmBuy, autoTap: vlbAutoTap, setLeash: vlbSetLeash, scanNow: vlbScan, select: vlbSelectSymbol, lockToggle: vlbLockToggle, setPref: vlFeedSetPref, approve: vlbApprove, close: vlbClose, sell: vlbSell,
+window.VL_BAR_API = { pressure: vlbPressure, assist: vlbAssist, sync: vlbSync, riskTap: vlbRiskTap, riskState: () => ({ alert: ALERT, vis: vis(), scene: SCENE, day: acctDay(), mode: RISK.mode, theme: root.dataset.hxTheme || '' }), armBuy: vlbArmBuy, autoTap: vlbAutoTap, setLeash: vlbSetLeash, scanNow: vlbScan, select: vlbSelectSymbol, lockToggle: vlbLockToggle, setPref: vlFeedSetPref, approve: vlbApprove, close: vlbClose, sell: vlbSell,
   sfxLog: () => VL_SFX.log.slice(), playSfx: n => vlbSfx(n),
   scanFx: () => ({ phase: VL_FX.phase, lock: VL_FX.lock ? { sym: VL_FX.lock.sym, tf: VL_FX.lock.tf, idx: VL_FX.lock.idx } : null }),
   editOn: () => { try { return !!EDIT.on; } catch (e) { return false; } }, soundOn: () => { try { return !!SET.sound; } catch (e) { return false; } },
@@ -4626,8 +4626,8 @@ const PAL={
  alert:{glass:'rgba(110,10,16,.58)',glass2:'rgba(60,4,9,.74)',edge:'rgba(255,130,118,.95)',title:'#fff1ec',text:'#ffe6e0',dim:'rgba(255,195,185,.72)',grid:'rgba(255,140,130,.2)',acc:'#ff5a4f',acc2:'#ffb020',acc3:'#ffd7a0',good:'#6fe8a0',bad:'#ff8a7a',warn:'#ffc23d',glow:1,node:'rgba(60,4,9,.92)',goodTile:[30,150,90],badTile:[225,40,40],tileText:'#ffffff',tag:'#2a0306',goodA:'rgba(111,232,160,.25)',badA:'rgba(255,138,122,.28)',accA:'rgba(255,90,79,.26)'},
  dark:{glass:'rgba(4,22,64,.55)',glass2:'rgba(6,34,92,.68)',edge:'rgba(90,190,255,.9)',title:'#ffffff',text:'#e8f5ff',dim:'rgba(170,215,255,.62)',grid:'rgba(110,180,255,.16)',acc:'#3cb8ff',acc2:'#ffc24d',acc3:'#9fb4d6',good:'#2dff9a',bad:'#ff4d6d',warn:'#ffc24d',glow:1,node:'rgba(8,36,96,.94)',goodTile:[18,190,110],badTile:[220,40,80],tileText:'#ffffff',tag:'#02101f',goodA:'rgba(45,255,154,.3)',badA:'rgba(255,77,109,.3)',accA:'rgba(60,184,255,.32)'}};
 const root=document.documentElement,mq=matchMedia('(prefers-color-scheme: dark)');
-const st=load('clo-theme');if(st==='dark'||st==='light')root.dataset.theme=st;
-const eff=()=>root.dataset.theme==='dark'||root.dataset.theme==='light'?root.dataset.theme:(mq.matches?'dark':'light');
+const st=load('clo-theme');root.dataset.hxTheme=(st==='dark'||st==='light')?st:(mq.matches?'dark':'light');
+const eff=()=>root.dataset.hxTheme==='dark'||root.dataset.hxTheme==='light'?root.dataset.hxTheme:(mq.matches?'dark':'light');
 let ALERT=false;const vis=()=>ALERT?'alert':curTheme;
 let curTheme=eff(),P=PAL[curTheme];
 
@@ -5629,7 +5629,7 @@ let toastT=0;function toast(m){const el=document.getElementById('toast');el.text
 function setView(id){const v=VIEWS.find(x=>x.id===id);if(!v)return;releaseGrab();
  if(id==='night'){setMarket('crypto');setTheme('dark')}
  S.sel=null;detail.hidden=true;S.view=id;S.seat=id==='seat';goTo((SCENE==='team'&&TEAMV[id]?TEAMV[id]:v.g)());hideHint();redraw();syncDock()}
-function setTheme(t){if(ALERT)setAlert(false);store('clo-theme',t);root.dataset.theme=t;syncTheme()}
+function setTheme(t){if(ALERT)setAlert(false);store('clo-theme',t);root.dataset.hxTheme=t;syncTheme()}
 function syncToggles(){document.getElementById('th-light').setAttribute('aria-pressed',String(curTheme==='light'&&!ALERT));document.getElementById('th-dark').setAttribute('aria-pressed',String(curTheme==='dark'&&!ALERT));document.getElementById('th-alert').setAttribute('aria-pressed',String(ALERT));
  document.getElementById('mk-stocks').setAttribute('aria-pressed',String(market==='stocks'));document.getElementById('mk-crypto').setAttribute('aria-pressed',String(market==='crypto'));
  editBtn.setAttribute('aria-pressed',String(EDIT.on));editBtn.textContent=EDIT.on?'DONE':'EDIT';
@@ -5643,8 +5643,8 @@ editBtn.onclick=()=>setEdit(!EDIT.on);
 setBtn.onclick=()=>{const open=settingsEl.hidden;settingsEl.hidden=!open;setBtn.setAttribute('aria-expanded',String(open));if(open){renderSettings();const f=settingsEl.querySelector('button');if(f)f.focus()}};
 addEventListener('keydown',e=>{if(e.key!=='Escape')return;if(GRAB)releaseGrab();else if(!settingsEl.hidden){settingsEl.hidden=true;setBtn.setAttribute('aria-expanded','false');setBtn.focus()}else if(EDIT.on)setEdit(false);else close()});
 function syncTheme(){const t=eff();if(t!==curTheme){curTheme=t;if(!ALERT)apply3D(t);if(S.sel)renderDetail()}syncToggles()}
-new MutationObserver(syncTheme).observe(root,{attributes:true,attributeFilter:['data-theme']});
-if(mq.addEventListener)mq.addEventListener('change',syncTheme);else if(mq.addListener)mq.addListener(syncTheme);
+new MutationObserver(syncTheme).observe(root,{attributes:true,attributeFilter:['data-hx-theme']});
+
 function setMarket(m){if(m===market)return;releaseGrab();market=m;store('clo-market',m);
  if(S.sel&&!['ctrlpad','chartpad','orderpad'].includes(S.sel)){S.sel=null;detail.hidden=true}
  B.orders=[];TAPE.length=0;TK.n=0;newTicket();EDIT.sel=null;rebuildLayout();syncToggles();if(EDIT.on)renderEditor();if(S.sel)renderDetail()}

@@ -25,6 +25,18 @@ t = rep(t, "document.querySelectorAll('button[title]')", "document.querySelector
 # 2. no service worker inside an artifact (it only 404s)
 t = rep(t, "<script>if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('/sw.js').catch(function(){})});}</script>", '')
 
+# 2b. theme flicker: the Claude viewer writes data-theme on the page root to sync its own light/dark mode, and
+#     the Holodex kept its Day/Night choice in that same attribute (and also followed system light/dark changes),
+#     so the 3D room kept flipping. The Holodex now keeps its theme in data-hx-theme, pinned at load, and only its
+#     own Day / Night / Risk controls change it.
+t = rep(t, ':root:not([data-theme="light"])', ':root:not([data-hx-theme="light"])')
+t = rep(t, ':root[data-theme="dark"]', ':root[data-hx-theme="dark"]')
+t = rep(t, "if(st==='dark'||st==='light')root.dataset.theme=st;", "root.dataset.hxTheme=(st==='dark'||st==='light')?st:(mq.matches?'dark':'light');")
+t = rep(t, 'root.dataset.theme', 'root.dataset.hxTheme', 5)
+t = rep(t, "attributeFilter:['data-theme']", "attributeFilter:['data-hx-theme']")
+t = rep(t, "if(mq.addEventListener)mq.addEventListener('change',syncTheme);else if(mq.addListener)mq.addListener(syncTheme);", "")
+assert 'data-theme' not in t.split('<!-- DEV MODE')[0] and 'dataset.theme' not in t
+
 # 3. Dev mode, pointed at the Holodex
 dm = rd('../src/devmode.js')
 dm = rep(dm, 'LS = "xvi_dev_v7"', 'LS = "holodex_dev_v1"')
