@@ -48,7 +48,7 @@ async function loadProds() {
   const r = await call("coinbase_products_list", { product_type: "SPOT", limit: 250 });
   (r && r.products || []).forEach(p => { const b = p.base_currency_id || String(p.product_id).split("-")[0]; if (WATCH.includes(b) && /-(USD|USDC)$/.test(p.product_id) && !(D.prods[b] && /USD$/.test(D.prods[b].id) && /USDC$/.test(p.product_id))) D.prods[b] = { id: p.product_id, p: +p.price, ch: +p.price_percentage_change_24h }; });
 }
-async function loadBook() { try { const r = await call("coinbase_products_book", { product_id: D.sym + "-USD", limit: 8 }); D.book = r && (r.pricebook || r); } catch (e) { D.book = null; } }
+async function loadBook() { const s = D.sym; try { const r = await call("coinbase_products_book", { product_id: s + "-USD", limit: 12 }); if (s === D.sym) D.book = r && (r.pricebook || r); } catch (e) { D.book = null; } }
 async function loadBal() {
   try { const r = await call("coinbase_balance", {}); const acc = (r && (r.accounts || r.balances)) || [];
     let usd = 0, usdc = 0, coin = 0; acc.forEach(a => { const cur = a.currency || a.asset; const v = num(a.available_balance || a.available || a.balance) || 0; if (cur === "USD") usd += v; if (cur === "USDC") usdc += v; if (cur === D.sym) coin += v; });
@@ -56,7 +56,7 @@ async function loadBal() {
 }
 async function refresh(full) {
   if (D.busy) return; D.busy = true;
-  try { await loadBars(); if (full || now() - D.lastLoad > 60000) { await loadProds(); await loadBal(); D.lastLoad = now(); } if (D.view === "book") await loadBook(); D.err = ""; }
+  try { await loadBars(); if (full || now() - D.lastLoad > 60000) { await loadProds(); await loadBal(); D.lastLoad = now(); } if (D.view === "book" || SIM.el || D.book === null) await loadBook(); D.err = ""; }
   catch (e) { D.err = (e && e.message) || "No market data"; }
   D.busy = false; computeAll(); try { PAPER.check(); } catch (e) {} repaint(); try { CHART.update(); SIM.update(); } catch (e) { console.warn("DNA update", e); }
 }
@@ -256,7 +256,7 @@ function ticket(g, W, H, sf) {
   key(g, sf, 22 * k, 304 * k, 286 * k, 80 * k, { label: "PREVIEW", icon: "eye", col: C.bl, act: () => previewOrder() });
   key(g, sf, 332 * k, 304 * k, 286 * k, 80 * k, { label: "PLACE", icon: "check", col: "#1fae7a", on: !!D.preview, act: () => placeOrder() });
 }
-function setSym(s) { D.sym = s; D.preview = null; D.msg = ""; saveSt(); toast("Showing " + s + "-USD"); refresh(true); }
+function setSym(s) { D.sym = s; D.book = null; D.preview = null; D.msg = ""; saveSt(); toast("Showing " + s + "-USD"); refresh(true); }
 function armTicket(side) { D.side = side; D.preview = null; D.msg = "Ticket armed: " + side + " $" + D.size.toFixed(2) + " " + D.sym + ". Preview, then place."; repaint(); toast(D.msg); }
 async function previewOrder() {
   const last = D.bars.length ? D.bars[D.bars.length - 1].c : null; if (!last) return toast("No price yet.");

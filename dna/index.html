@@ -8961,7 +8961,7 @@ setTimeout(() => applyAll(), 4000); /* 3D screens appear later: re-apply their r
 .mt-g{flex:1;display:grid;grid-template-columns:250px 1fr;min-height:420px}.mt-cap{background:linear-gradient(#fdfdfd,#e4e4e4);border-bottom:1px solid #b5b5b5;padding:3px 6px;font-size:12px;font-weight:700}
 .mt-l{border-right:1px solid #b5b5b5;background:#fff;overflow:auto}.mt-nav{list-style:none;margin:0;padding:6px 10px;font-size:12px;display:grid;gap:4px}.mt-c{position:relative;display:flex;flex-direction:column;background:#fff}
 .plat-mt .wl button{border-radius:0;color:#000}.plat-mt .wl button.on{background:#cce4ff}
-.mt-oc{position:absolute;z-index:3;top:30px;left:10px;display:flex;align-items:stretch;gap:2px;background:#fff;border:1px solid #888;padding:2px}.mt-oc button{display:grid;min-width:76px;padding:2px 8px;border:0;color:#fff;font-size:10px}.mt-oc button b{font-size:15px}
+.mt-oc{position:absolute;z-index:3;top:62px;right:84px;display:flex;align-items:stretch;gap:2px;background:#fff;border:1px solid #888;padding:2px}.mt-oc button{display:grid;min-width:76px;padding:2px 8px;border:0;color:#fff;font-size:10px}.mt-oc button b{font-size:15px}
 .mt-oc button[data-oneclick="SELL"]{background:#d02a2a}.mt-oc button[data-oneclick="BUY"]{background:#1d5fd0}.mt-oc label{width:62px;font-size:10px;color:#000}.mt-oc input{min-height:24px;border-radius:0;background:#fff;color:#000;border-color:#888}
 .mt-term{border-top:1px solid #b5b5b5;background:#fff;max-height:220px;overflow:auto}.mt-term .st-tb td{border-top-color:#e0e0e0}.mt-bal{padding:4px 8px;font-size:12px;border-top:1px solid #e0e0e0}
 .plat-mt input,.plat-mt select{background:#fff;color:#000;border-radius:0}
@@ -8984,6 +8984,8 @@ setTimeout(() => applyAll(), 4000); /* 3D screens appear later: re-apply their r
 .sim-coach ol{display:flex;flex-wrap:wrap;gap:4px 14px;margin:0;padding-left:18px}.sim-coach li{color:#9cc4e6}.sim-coach li.ok{color:#2ee6a8}.sim-coach li.now{color:#fff;text-shadow:0 0 8px rgba(127,227,255,.8)}.sc-sp{flex:1}
 .sim-coach button{min-height:34px;padding:0 12px;border-radius:10px;border:1px solid rgba(127,208,255,.55);background:rgba(127,227,255,.1);color:#eaf6ff;font:700 12px Orbitron,sans-serif;cursor:pointer}
 @media (max-width:900px){.cb-g,.tv-g,.wb-g,.mt-g,.tos-g,.nt-g{grid-template-columns:1fr;grid-template-rows:auto}.cb-g .tk,.cb-g .bot,.tv-b,.nt-t{grid-column:auto;grid-row:auto}.wb-n{display:none}.sim-chart{min-height:300px}.mt-oc{top:30px}}
+
+[data-live=acct]{display:flex;flex-wrap:wrap;gap:4px 12px}.tos-ac[data-live=acct]{flex-direction:column}.nt-ct [data-live=acct]{justify-content:flex-end}
 
 </style>
 <script id="dna-prochart">
@@ -9270,7 +9272,7 @@ async function loadProds() {
   const r = await call("coinbase_products_list", { product_type: "SPOT", limit: 250 });
   (r && r.products || []).forEach(p => { const b = p.base_currency_id || String(p.product_id).split("-")[0]; if (WATCH.includes(b) && /-(USD|USDC)$/.test(p.product_id) && !(D.prods[b] && /USD$/.test(D.prods[b].id) && /USDC$/.test(p.product_id))) D.prods[b] = { id: p.product_id, p: +p.price, ch: +p.price_percentage_change_24h }; });
 }
-async function loadBook() { try { const r = await call("coinbase_products_book", { product_id: D.sym + "-USD", limit: 8 }); D.book = r && (r.pricebook || r); } catch (e) { D.book = null; } }
+async function loadBook() { const s = D.sym; try { const r = await call("coinbase_products_book", { product_id: s + "-USD", limit: 12 }); if (s === D.sym) D.book = r && (r.pricebook || r); } catch (e) { D.book = null; } }
 async function loadBal() {
   try { const r = await call("coinbase_balance", {}); const acc = (r && (r.accounts || r.balances)) || [];
     let usd = 0, usdc = 0, coin = 0; acc.forEach(a => { const cur = a.currency || a.asset; const v = num(a.available_balance || a.available || a.balance) || 0; if (cur === "USD") usd += v; if (cur === "USDC") usdc += v; if (cur === D.sym) coin += v; });
@@ -9278,7 +9280,7 @@ async function loadBal() {
 }
 async function refresh(full) {
   if (D.busy) return; D.busy = true;
-  try { await loadBars(); if (full || now() - D.lastLoad > 60000) { await loadProds(); await loadBal(); D.lastLoad = now(); } if (D.view === "book") await loadBook(); D.err = ""; }
+  try { await loadBars(); if (full || now() - D.lastLoad > 60000) { await loadProds(); await loadBal(); D.lastLoad = now(); } if (D.view === "book" || SIM.el || D.book === null) await loadBook(); D.err = ""; }
   catch (e) { D.err = (e && e.message) || "No market data"; }
   D.busy = false; computeAll(); try { PAPER.check(); } catch (e) {} repaint(); try { CHART.update(); SIM.update(); } catch (e) { console.warn("DNA update", e); }
 }
@@ -9478,7 +9480,7 @@ function ticket(g, W, H, sf) {
   key(g, sf, 22 * k, 304 * k, 286 * k, 80 * k, { label: "PREVIEW", icon: "eye", col: C.bl, act: () => previewOrder() });
   key(g, sf, 332 * k, 304 * k, 286 * k, 80 * k, { label: "PLACE", icon: "check", col: "#1fae7a", on: !!D.preview, act: () => placeOrder() });
 }
-function setSym(s) { D.sym = s; D.preview = null; D.msg = ""; saveSt(); toast("Showing " + s + "-USD"); refresh(true); }
+function setSym(s) { D.sym = s; D.book = null; D.preview = null; D.msg = ""; saveSt(); toast("Showing " + s + "-USD"); refresh(true); }
 function armTicket(side) { D.side = side; D.preview = null; D.msg = "Ticket armed: " + side + " $" + D.size.toFixed(2) + " " + D.sym + ". Preview, then place."; repaint(); toast(D.msg); }
 async function previewOrder() {
   const last = D.bars.length ? D.bars[D.bars.length - 1].c : null; if (!last) return toast("No price yet.");
